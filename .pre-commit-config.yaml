@@ -1,0 +1,93 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: debug-statements
+      - id: double-quote-string-fixer
+      - id: name-tests-test
+      - id: requirements-txt-fixer
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v2.5.0
+    hooks:
+      - id: setup-cfg-fmt
+  - repo: https://github.com/asottile/reorder_python_imports
+    rev: v3.12.0
+    hooks:
+      - id: reorder-python-imports
+        args: [--py37-plus, --add-import, "from __future__ import annotations"]
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.1.0
+    hooks:
+      - id: add-trailing-comma
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.0
+    hooks:
+      - id: pyupgrade
+        args: [--py37-plus, --keep-runtime-typing]
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v2.0.4
+    hooks:
+      - id: autopep8
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        args:
+          - --ignore=E501
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.4.0
+    hooks:
+      - id: pycln
+        args: [--all]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+        args:
+          - --ignore-missing-imports
+          - --scripts-are-modules
+        # args:
+        #   [
+        #     "--ignore-missing-imports",
+        #     "--scripts-are-modules",
+        #     "--python-version",
+        #     "3.8",
+        #   ]
+  # -   repo: local
+  #     hooks:
+  #     -   id: pyright
+  #         name: pyright
+  #         entry: pyright
+  #         language: node
+  #         pass_filenames: false
+  #         types: [python]
+  #         additional_dependencies: ['pyright@1.1.317']
+  # - repo: local
+  #   hooks:
+  #     - id: pytest
+  #       name: pytest
+  #       entry: pytest tests -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
+  #       types: [python]
+  #     - id: tox
+  #       name: tox
+  #       entry: tox run-parallel
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
+  #       types: [python]
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   # Ruff version.
+  #   rev: v0.1.6
+  #   hooks:
+  #     # Run the linter.
+  #     - id: ruff
+  #       args: [--fix]
+  #     # Run the formatter.
+  #     - id: ruff-format

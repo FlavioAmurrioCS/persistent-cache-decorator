@@ -1,0 +1,85 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "persistent-cache-decorator"
+dynamic = ["version"]
+description = 'A decorator for caching functions that provides persistence to JSON, pickle, or SQLite'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["cache", "decorator", "persistence", "JSON", "pickle", "SQLite"]
+authors = [
+  { name = "Flavio Amurrio", email = "25621374+FlavioAmurrioCS@users.noreply.github.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "typing-extensions"
+]
+
+[project.urls]
+Documentation = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator#readme"
+Issues = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator/issues"
+Source = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator"
+
+[tool.hatch.version]
+path = "src/persistent_cache_decorator/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+  "coverage xml",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types]
+dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/persistent_cache_decorator tests}"
+
+[tool.coverage.run]
+source_pkgs = ["persistent_cache_decorator", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/persistent_cache_decorator/__about__.py",
+]
+
+[tool.coverage.paths]
+persistent_cache_decorator = ["src/persistent_cache_decorator", "*/persistent-cache-decorator/src/persistent_cache_decorator"]
+tests = ["tests", "*/persistent-cache-decorator/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "class CacheBackend\\(Protocol, Generic\\[_R\\]\\):"
+]
