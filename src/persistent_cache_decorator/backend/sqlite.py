@@ -59,7 +59,8 @@ class SqliteCacheBackend(Generic[_R]):
         if cached_result:
             pickled_result, timestamp = cached_result
             cached_time = datetime.datetime.strptime(
-                timestamp, '%Y-%m-%d %H:%M:%S')
+                timestamp, '%Y-%m-%d %H:%M:%S',
+            )
 
             if datetime.datetime.now() < cached_time + lifespan:
                 return pickle.loads(pickled_result)
