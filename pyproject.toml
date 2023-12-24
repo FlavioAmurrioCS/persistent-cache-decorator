@@ -47,6 +47,7 @@ test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
   "- coverage combine",
   "coverage report",
+  "coverage xml",
 ]
 cov = [
   "test-cov",
@@ -80,4 +81,5 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+  "class CacheBackend\\(Protocol, Generic\\[_R\\]\\):"
 ]

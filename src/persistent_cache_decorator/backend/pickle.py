@@ -22,16 +22,16 @@ class PickleCacheBackend(Generic[_R]):
 
     @functools.cached_property
     def data(self) -> dict[str, dict[str, tuple[datetime.datetime, _R]]]:
-        with suppress(FileNotFoundError):
+        with suppress(Exception):
             with open(self.file_path, 'rb') as f:
                 self._data = pickle.load(f)
         atexit.register(self.__save__)
         return self._data
 
-    def __save__(self) -> None:
-        print(f'SAVING FILE AT EXIT: {self.file_path}')
+    def __save__(self) -> str:
         with open(self.file_path, 'wb') as f:
             pickle.dump(self.data, f)
+        return self.file_path
 
     def get_cached_results(self, *, func: Callable[..., _R], args: tuple[Any, ...], kwargs: dict[str, Any], lifespan: datetime.timedelta) -> _R:
         funcname = func.__qualname__

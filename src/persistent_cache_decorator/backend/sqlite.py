@@ -20,6 +20,9 @@ class SqliteCacheBackend(Generic[_R]):
     def __init__(self, filename: str) -> None:
         self.file_path = filename
 
+    def __save__(self) -> str:
+        return self.file_path
+
     @functools.cached_property
     def connection(self) -> sqlite3.Connection:
         return sqlite3.connect(self.file_path)

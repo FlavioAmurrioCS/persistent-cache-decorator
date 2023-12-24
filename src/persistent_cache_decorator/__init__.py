@@ -32,6 +32,12 @@ class _cache_duration(TypedDict, total=False):
 
 
 class CacheBackend(Protocol, Generic[_R]):
+    def __init__(self, filename: str) -> None:
+        ...
+
+    def __save__(self) -> str:
+        ...
+
     def get_cached_results(self, *, func: Callable[..., _R], args: tuple[Any, ...], kwargs: dict[str, Any], lifespan: datetime.timedelta) -> _R:
         ...
 
@@ -63,10 +69,10 @@ class _persistent_cache(Generic[_P, _R]):
 
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R:
         if 'NO_CACHE' in os.environ:
-            return self.__wrapped__(*args, **kwargs)
+            return self.no_cache_call(*args, **kwargs)
         os.makedirs(_DEFAULT_CACHE_LOCATION, exist_ok=True)
         if 'BUST_CACHE' in os.environ:
-            self.__backend__.del_function_cache(func=self.__wrapped__)
+            self.cache_clear()
         return self.__backend__.get_cached_results(
             func=self.__wrapped__,
             args=args,
