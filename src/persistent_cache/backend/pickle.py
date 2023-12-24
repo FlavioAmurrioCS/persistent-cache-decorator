@@ -39,7 +39,8 @@ class PickleCacheBackend(Generic[_R]):
         date, result = self.data.get(funcname, {}).get(args_key, (None, None))
         if date is None or datetime.datetime.now() - date > lifespan:
             result = func(*args, **kwargs)
-            self.data.setdefault(funcname, {})[args_key] = (datetime.datetime.now(), result)
+            self.data.setdefault(funcname, {})[args_key] = (
+                datetime.datetime.now(), result)
         return result  # type:ignore
 
     def del_function_cache(self, *, func: Callable[..., _R]) -> None:
