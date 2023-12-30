@@ -81,5 +81,8 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
-  "class CacheBackend\\(Protocol, Generic\\[_R\\]\\):"
+  "class CacheBackend\\(Protocol, Generic\\[_R\\]\\):",
 ]
+
+[tool.autopep8]
+max_line_length = 777

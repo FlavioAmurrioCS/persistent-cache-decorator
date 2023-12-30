@@ -6,7 +6,6 @@ import pickle
 import sqlite3
 from typing import Any
 from typing import Callable
-from typing import Generic
 
 from typing_extensions import TypeVar
 
@@ -14,21 +13,56 @@ from typing_extensions import TypeVar
 _R = TypeVar('_R')
 
 
-class SqliteCacheBackend(Generic[_R]):
+class SqliteCacheBackend:
+    """
+    A cache backend implementation using SQLite as the storage.
+
+    Args:
+        filename (str): The path to the SQLite database file.
+
+    Attributes:
+        file_path (str): The path to the SQLite database file.
+
+    Methods:
+        __save__(): Returns the file path of the SQLite database.
+        connection(): Returns a SQLite connection object.
+        cursor(): Returns a SQLite cursor object.
+        get_cached_results(): Retrieves cached results from the cache.
+        del_function_cache(): Deletes cached results for a specific function.
+    """
+
     file_path: str
 
     def __init__(self, filename: str) -> None:
         self.file_path = filename
 
     def __save__(self) -> str:
+        """
+        Returns the file path of the SQLite database.
+
+        Returns:
+            str: The file path of the SQLite database.
+        """
         return self.file_path
 
     @functools.cached_property
     def connection(self) -> sqlite3.Connection:
+        """
+        Returns a SQLite connection object.
+
+        Returns:
+            sqlite3.Connection: A SQLite connection object.
+        """
         return sqlite3.connect(self.file_path)
 
     @functools.cached_property
     def cursor(self) -> sqlite3.Cursor:
+        """
+        Returns a SQLite cursor object.
+
+        Returns:
+            sqlite3.Cursor: A SQLite cursor object.
+        """
         connection = self.connection
         cursor = connection.cursor()
         cursor.execute('''
@@ -45,6 +79,18 @@ class SqliteCacheBackend(Generic[_R]):
         return cursor
 
     def get_cached_results(self, *, func: Callable[..., _R], args: tuple[Any, ...], kwargs: dict[str, Any], lifespan: datetime.timedelta) -> _R:
+        """
+        Retrieves cached results from the cache.
+
+        Args:
+            func (Callable[..., _R]): The function to retrieve cached results for.
+            args (tuple[Any, ...]): The arguments passed to the function.
+            kwargs (dict[str, Any]): The keyword arguments passed to the function.
+            lifespan (datetime.timedelta): The lifespan of the cached results.
+
+        Returns:
+            _R: The cached results, if available. Otherwise, the function is called and the results are cached.
+        """
         # Serialize the arguments and keyword arguments
         pickled_args = pickle.dumps(args)
         pickled_kwargs = pickle.dumps(kwargs)
@@ -93,11 +139,17 @@ class SqliteCacheBackend(Generic[_R]):
 
         return result
 
-    def del_function_cache(self, *, func: Callable[..., _R]) -> None:
+    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+        """
+        Deletes cached results for a specific function.
+
+        Args:
+            func (Callable[..., Any]): The function to delete cached results for.
+        """
         self.cursor.execute(
             '''
             DELETE FROM cache
             WHERE function = ?
-            ''', (func.__qualname__),
+            ''', (func.__qualname__,),
         )
         self.connection.commit()
