@@ -15,7 +15,7 @@ from persistent_cache_decorator import SqliteCacheBackend
 @pytest.mark.parametrize('cache_backend', [(SqliteCacheBackend), (PickleCacheBackend), (JsonCacheBackend)])
 def test_persistent_cache(cache_backend: type[SqliteCacheBackend] | type[PickleCacheBackend] | type[JsonCacheBackend]) -> None:
     with tempfile.NamedTemporaryFile() as f:
-        @persistent_cache(backend=cache_backend(f.name), duration={'seconds': 4})
+        @persistent_cache(backend=cache_backend(f.name), seconds=4)
         def foo(time: float) -> float:
             sleep(time)
             return time

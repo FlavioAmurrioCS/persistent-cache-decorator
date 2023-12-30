@@ -14,6 +14,7 @@ from typing_extensions import ParamSpec
 from typing_extensions import Protocol
 from typing_extensions import TypedDict
 from typing_extensions import TypeVar
+from typing_extensions import Unpack
 
 _R = TypeVar('_R')
 _P = ParamSpec('_P')
@@ -47,15 +48,6 @@ class CacheBackend(Protocol):
     """
     Interface for cache backends used by the persistent cache decorator.
     """
-
-    def __save__(self) -> str:
-        """
-        Save the cache data to a persistent storage and return the location.
-
-        Returns:
-            str: The unique identifier for the saved cache data.
-        """
-        ...  # no cov
 
     def get_cached_results(self, *, func: Callable[..., _R], args: tuple[Any, ...], kwargs: dict[str, Any], lifespan: datetime.timedelta) -> _R:
         """
@@ -164,8 +156,8 @@ DEFAULT_CACHE_DURATION: _cache_duration = {'days': 1}
 
 def persistent_cache(
     *,
-    duration: _cache_duration = DEFAULT_CACHE_DURATION,
     backend: CacheBackendT = SQLITE_CACHE_BACKEND,  # type: ignore
+    **duration: Unpack[_cache_duration]
 ) -> Callable[[Callable[_P, _R]], _persistent_cache[_P, _R, CacheBackendT]]:
     """
     Decorator that adds persistent caching functionality to a function.
@@ -177,6 +169,7 @@ def persistent_cache(
     Returns:
         A decorator that can be applied to a function to enable persistent caching.
     """
+    duration = duration or DEFAULT_CACHE_DURATION
     mcache_duration = datetime.timedelta(**duration)
 
     def inner(func: Callable[_P, _R]) -> _persistent_cache[_P, _R, CacheBackendT]:
@@ -189,8 +182,7 @@ def persistent_cache(
 
 
 def json_cache(
-    *,
-    duration: _cache_duration = DEFAULT_CACHE_DURATION,
+    **duration: Unpack[_cache_duration]
 ) -> Callable[[Callable[_P, _R]], _persistent_cache[_P, _R, JsonCacheBackend]]:
     """
     Decorator that caches the result of a function using a JSON cache backend.
@@ -202,14 +194,13 @@ def json_cache(
         A decorator that can be used to cache the result of a function.
     """
     return persistent_cache(
-        duration=duration,
         backend=JSON_CACHE_BACKEND,
+        **duration,
     )
 
 
 def pickle_cache(
-    *,
-    duration: _cache_duration = DEFAULT_CACHE_DURATION,
+    **duration: Unpack[_cache_duration]
 ) -> Callable[[Callable[_P, _R]], _persistent_cache[_P, _R, PickleCacheBackend]]:
     """
     Decorator that caches the result of a function using pickle serialization.
@@ -221,14 +212,13 @@ def pickle_cache(
         A decorator that can be applied to a function to enable caching.
     """
     return persistent_cache(
-        duration=duration,
         backend=PICKLE_CACHE_BACKEND,
+        **duration,
     )
 
 
 def sqlite_cache(
-    *,
-    duration: _cache_duration = DEFAULT_CACHE_DURATION,
+    **duration: Unpack[_cache_duration]
 ) -> Callable[[Callable[_P, _R]], _persistent_cache[_P, _R, SqliteCacheBackend]]:
     """
     Decorator that enables caching of function results using SQLite as the cache backend.
@@ -241,6 +231,30 @@ def sqlite_cache(
 
     """
     return persistent_cache(
-        duration=duration,
         backend=SQLITE_CACHE_BACKEND,
+        **duration,
     )
+
+
+def cache_decorator_factory(
+    *,
+    backend: CacheBackendT,
+    **default_duration: Unpack[_cache_duration],
+) -> Callable[..., Callable[[Callable[_P, _R]], _persistent_cache[_P, _R, CacheBackendT]]]:
+    """
+    A factory function that returns a decorator that can be used to cache the result of a function.
+
+    Args:
+        backend: The cache backend to use.
+        duration: The duration for which the cache should be valid. Default is 1 day.
+
+    Returns:
+        A decorator that can be applied to a function to enable persistent caching.
+    """
+    def __inner__(**duration: Unpack[_cache_duration]) -> Callable[[Callable[_P, _R]], _persistent_cache[_P, _R, CacheBackendT]]:
+        return persistent_cache(
+            backend=backend,
+            **(duration or default_duration),
+        )
+
+    return __inner__
