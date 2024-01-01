@@ -25,7 +25,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "typing-extensions"
+  "typing-extensions",
 ]
 
 [project.urls]
@@ -84,5 +84,59 @@ exclude_lines = [
   "class CacheBackend\\(Protocol, Generic\\[_R\\]\\):",
 ]
 
-[tool.autopep8]
-max_line_length = 777
+# COMMON SETTINGS BELOW
+[tool.hatch.envs.hatch-static-analysis]
+config-path = "none"
+
+[tool.ruff]
+line-length = 100
+select = [
+  "ALL",
+]
+
+ignore = [
+  "ANN101", # missing-type-self
+  "ANN102", # missing-type-cls
+  "COM812", # missing-trailing-comma
+  "D100",   # undocumented-public-module
+  "D101",   # undocumented-public-class
+  "D102",   # undocumented-public-method
+  "D103",   # undocumented-public-function
+  "D104",   # undocumented-public-package
+  "D105",   # undocumented-magic-method
+  "D107",   # undocumented-public-init
+  "ERA001", # commented-out-code
+  "I",      # isort # DO NOT ENABLE https://github.com/astral-sh/ruff/issues/4670
+  "ISC001", # single-line-implicit-string-concatenation
+  "PGH003", # blanket-type-ignore
+  "PTH",    # flake8-use-pathlib # DO NOT ENABLE, we prefere non pathlib
+  "T20",    # flake8-print # DO NOT ENABLE, we use prints
+  "D203",   # one-blank-line-before-class
+  "D212",   # multi-line-summary-first-line
+  "D401",   # non-imperative-mood
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 100
+
+# https://github.com/astral-sh/ruff/issues/4368
+[tool.ruff.per-file-ignores]
+"tests/**/*.py" = [
+  "S101",   # assert
+  "E501",   # line-too-long
+  "INP001", # implicit-namespace-package
+]
+
+[tool.tox]
+legacy_tox_ini = """
+    [tox]
+    skip_missing_interpreters = True
+    envlist = py38, py39, py310, py311, py312
+
+    [testenv]
+    deps = pytest
+    commands =
+        ; mypy --ignore-missing-imports --scripts-are-modules comma
+        pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning {posargs:tests}
+"""

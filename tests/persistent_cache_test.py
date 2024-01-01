@@ -5,16 +5,21 @@ import tempfile
 from time import perf_counter
 from time import sleep
 
-import pytest
+import pytest  # pyright: ignore[reportMissingImports]
 from persistent_cache_decorator import JsonCacheBackend
 from persistent_cache_decorator import persistent_cache
 from persistent_cache_decorator import PickleCacheBackend
 from persistent_cache_decorator import SqliteCacheBackend
 
 
-@pytest.mark.parametrize('cache_backend', [(SqliteCacheBackend), (PickleCacheBackend), (JsonCacheBackend)])
-def test_persistent_cache(cache_backend: type[SqliteCacheBackend] | type[PickleCacheBackend] | type[JsonCacheBackend]) -> None:
+@pytest.mark.parametrize(
+    "cache_backend", [(SqliteCacheBackend), (PickleCacheBackend), (JsonCacheBackend)]
+)
+def test_persistent_cache(
+    cache_backend: type[SqliteCacheBackend | PickleCacheBackend | JsonCacheBackend],
+) -> None:
     with tempfile.NamedTemporaryFile() as f:
+
         @persistent_cache(backend=cache_backend(f.name), seconds=4)
         def foo(time: float) -> float:
             sleep(time)
