@@ -23,10 +23,10 @@ pip install persistent-cache-decorator
 ## Usage
 ```python
 >>> from typing import reveal_type
->>> from persistent_cache_decorator import persistent_cache
->>> # from persistent_cache_decorator import json_cache # Can also use one of this specific cache methods
->>> # from persistent_cache_decorator import pickle_cache # Can also use one of this specific cache methods
->>> # from persistent_cache_decorator import sqlite_cache # Can also use one of this specific cache methods
+>>> from persistent_cache.decorators import persistent_cache
+>>> # from persistent_cache.decorators import json_cache # Can also use one of this specific cache methods
+>>> # from persistent_cache.decorators import pickle_cache # Can also use one of this specific cache methods
+>>> # from persistent_cache.decorators import sqlite_cache # Can also use one of this specific cache methods
 >>>
 >>> import time
 >>>
