@@ -7,9 +7,9 @@ from typing import Any
 from typing import Callable
 from typing import Generic
 
-from persistent_cache_decorator.backend.json import JsonCacheBackend
-from persistent_cache_decorator.backend.pickle import PickleCacheBackend
-from persistent_cache_decorator.backend.sqlite import SqliteCacheBackend
+from persistent_cache.backend.json import JsonCacheBackend
+from persistent_cache.backend.pickle import PickleCacheBackend
+from persistent_cache.backend.sqlite import SqliteCacheBackend
 from typing_extensions import ParamSpec
 from typing_extensions import Protocol
 from typing_extensions import TypedDict

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -34,12 +34,16 @@ Issues = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator/issues"
 Source = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator"
 
 [tool.hatch.version]
-path = "src/persistent_cache_decorator/__about__.py"
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/persistent_cache/_version.py"
 
 [tool.hatch.envs.default]
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "setuptools-scm",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
@@ -62,18 +66,18 @@ dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/persistent_cache_decorator tests}"
+check = "mypy --install-types --non-interactive {args:src/persistent_cache tests}"
 
 [tool.coverage.run]
 source_pkgs = ["persistent_cache_decorator", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/persistent_cache_decorator/__about__.py",
+
 ]
 
 [tool.coverage.paths]
-persistent_cache_decorator = ["src/persistent_cache_decorator", "*/persistent-cache-decorator/src/persistent_cache_decorator"]
+persistent_cache_decorator = ["src/persistent_cache", "*/persistent-cache-decorator/src/persistent_cache"]
 tests = ["tests", "*/persistent-cache-decorator/tests"]
 
 [tool.coverage.report]
@@ -83,9 +87,15 @@ exclude_lines = [
   "if TYPE_CHECKING:",
   "class CacheBackend\\(Protocol, Generic\\[_R\\]\\):",
 ]
+[tool.hatch.build.targets.wheel]
+packages = ["src/persistent_cache"]
 
 # COMMON SETTINGS BELOW
+[tool.pyright]
+pythonVersion = "3.8"
+
 [tool.mypy]
+python_version = "3.8"
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true

@@ -6,10 +6,10 @@ from time import perf_counter
 from time import sleep
 
 import pytest  # pyright: ignore[reportMissingImports]
-from persistent_cache_decorator import JsonCacheBackend
-from persistent_cache_decorator import persistent_cache
-from persistent_cache_decorator import PickleCacheBackend
-from persistent_cache_decorator import SqliteCacheBackend
+from persistent_cache.backend.json import JsonCacheBackend
+from persistent_cache.backend.pickle import PickleCacheBackend
+from persistent_cache.backend.sqlite import SqliteCacheBackend
+from persistent_cache.decorators import persistent_cache
 
 
 @pytest.mark.parametrize(
