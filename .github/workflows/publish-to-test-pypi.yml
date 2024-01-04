@@ -93,6 +93,7 @@ jobs:
         --repo '${{ github.repository }}'
 
   publish-to-testpypi:
+    if: false  # disable this job
     name: Publish Python 🐍 distribution 📦 to TestPyPI
     needs:
     - build
