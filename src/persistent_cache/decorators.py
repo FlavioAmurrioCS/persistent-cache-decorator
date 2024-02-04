@@ -6,15 +6,19 @@ import os
 from typing import Any
 from typing import Callable
 from typing import Generic
+from typing import overload
 
 from persistent_cache.backend.json import JsonCacheBackend
 from persistent_cache.backend.pickle import PickleCacheBackend
 from persistent_cache.backend.sqlite import SqliteCacheBackend
+from typing_extensions import Concatenate
 from typing_extensions import ParamSpec
 from typing_extensions import Protocol
+from typing_extensions import Self
 from typing_extensions import TypedDict
 from typing_extensions import TypeVar
 from typing_extensions import Unpack
+
 
 _R = TypeVar("_R")
 _P = ParamSpec("_P")
@@ -35,6 +39,7 @@ class _CacheDuration(TypedDict, total=False):
         minutes (float): Number of minutes.
         hours (float): Number of hours.
         weeks (float): Number of weeks.
+
     """
 
     days: float
@@ -70,6 +75,7 @@ class CacheBackend(Protocol):
         Returns:
         -------
             _R: The cached results, if available.
+
         """
         ...  # no cov
 
@@ -80,6 +86,7 @@ class CacheBackend(Protocol):
         Args:
         ----
             func (Callable[..., Any]): The function to delete the cache for.
+
         """
         ...  # no cov
 
@@ -102,6 +109,7 @@ class _PersistentCache(Generic[_P, _R, CacheBackendT]):
         __wrapped__ (Callable[_P, _R]): The wrapped function.
         __duration__ (datetime.timedelta): The duration for which the cached results should be considered valid.
         __backend__ (_backend): The backend storage for the cached results.
+
     """  # noqa: E501
 
     __wrapped__: Callable[_P, _R]
@@ -135,6 +143,7 @@ class _PersistentCache(Generic[_P, _R, CacheBackendT]):
         Returns:
         -------
             _R: The result of the wrapped function.
+
         """
         return self.__wrapped__(*args, **kwargs)
 
@@ -150,6 +159,7 @@ class _PersistentCache(Generic[_P, _R, CacheBackendT]):
         Returns:
         -------
             _R: The result of the wrapped function.
+
         """  # noqa: E501
         if "NO_CACHE" in os.environ:
             return self.no_cache_call(*args, **kwargs)
@@ -170,6 +180,24 @@ class _PersistentCache(Generic[_P, _R, CacheBackendT]):
     #     return functools.partial(self.__call__, instance)
 
 
+Instance = TypeVar("Instance")
+
+
+class _PersistentCachedProperty(_PersistentCache[Concatenate[Instance, _P], _R, CacheBackendT]):
+    @overload
+    def __get__(self, instance: None, owner: type[Instance]) -> Self:
+        ...
+
+    @overload
+    def __get__(self, instance: Instance, owner: type[Instance]) -> Callable[_P, _R]:
+        ...
+
+    def __get__(self, instance: Instance | None, owner: type[Instance]) -> Self | Callable[_P, _R]:
+        if instance is None:
+            return self
+        return functools.partial(self.__call__, instance)  # pyright: ignore[reportGeneralTypeIssues]
+
+
 JSON_CACHE_BACKEND = JsonCacheBackend(filename=os.path.join(_DEFAULT_CACHE_LOCATION, "data.json"))
 PICKLE_CACHE_BACKEND = PickleCacheBackend(
     filename=os.path.join(_DEFAULT_CACHE_LOCATION, "data.pickle")
@@ -182,7 +210,7 @@ DEFAULT_CACHE_DURATION: _CacheDuration = {"days": 1}
 
 def persistent_cache(
     *,
-    backend: CacheBackendT = SQLITE_CACHE_BACKEND,  # type: ignore
+    backend: CacheBackendT = SQLITE_CACHE_BACKEND,  # type: ignore[assignment]
     **duration: Unpack[_CacheDuration],
 ) -> Callable[[Callable[_P, _R]], _PersistentCache[_P, _R, CacheBackendT]]:
     """
@@ -196,12 +224,36 @@ def persistent_cache(
     Returns:
     -------
         A decorator that can be applied to a function to enable persistent caching.
+
     """
     duration = duration or DEFAULT_CACHE_DURATION
     mcache_duration = datetime.timedelta(**duration)
 
     def inner(func: Callable[_P, _R]) -> _PersistentCache[_P, _R, CacheBackendT]:
         return _PersistentCache(
+            func=func,
+            duration=mcache_duration,
+            backend=backend,
+        )
+
+    return inner
+
+
+def persistent_cached_property(
+    *,
+    backend: CacheBackendT = SQLITE_CACHE_BACKEND,  # type: ignore[assignment]
+    **duration: Unpack[_CacheDuration],
+) -> Callable[
+    [Callable[Concatenate[Instance, _P], _R]],
+    _PersistentCachedProperty[Instance, _P, _R, CacheBackendT],
+]:
+    duration = duration or DEFAULT_CACHE_DURATION
+    mcache_duration = datetime.timedelta(**duration)
+
+    def inner(
+        func: Callable[Concatenate[Instance, _P], _R],
+    ) -> _PersistentCachedProperty[Instance, _P, _R, CacheBackendT]:
+        return _PersistentCachedProperty(
             func=func,
             duration=mcache_duration,
             backend=backend,
@@ -223,8 +275,21 @@ def json_cache(
     Returns:
     -------
         A decorator that can be used to cache the result of a function.
+
     """
     return persistent_cache(
+        backend=JSON_CACHE_BACKEND,
+        **duration,
+    )
+
+
+def json_cached_property(
+    **duration: Unpack[_CacheDuration],
+) -> Callable[
+    [Callable[Concatenate[Instance, _P], _R]],
+    _PersistentCachedProperty[Instance, _P, _R, JsonCacheBackend],
+]:
+    return persistent_cached_property(
         backend=JSON_CACHE_BACKEND,
         **duration,
     )
@@ -243,8 +308,21 @@ def pickle_cache(
     Returns:
     -------
         A decorator that can be applied to a function to enable caching.
+
     """
     return persistent_cache(
+        backend=PICKLE_CACHE_BACKEND,
+        **duration,
+    )
+
+
+def pickle_cached_property(
+    **duration: Unpack[_CacheDuration],
+) -> Callable[
+    [Callable[Concatenate[Instance, _P], _R]],
+    _PersistentCachedProperty[Instance, _P, _R, PickleCacheBackend],
+]:
+    return persistent_cached_property(
         backend=PICKLE_CACHE_BACKEND,
         **duration,
     )
@@ -271,6 +349,18 @@ def sqlite_cache(
     )
 
 
+def sqlite_cached_property(
+    **duration: Unpack[_CacheDuration],
+) -> Callable[
+    [Callable[Concatenate[Instance, _P], _R]],
+    _PersistentCachedProperty[Instance, _P, _R, SqliteCacheBackend],
+]:
+    return persistent_cached_property(
+        backend=SQLITE_CACHE_BACKEND,
+        **duration,
+    )
+
+
 def cache_decorator_factory(  # noqa: D417
     *,
     backend: CacheBackendT,
@@ -287,12 +377,38 @@ def cache_decorator_factory(  # noqa: D417
     Returns:
     -------
         A decorator that can be applied to a function to enable persistent caching.
+
     """
 
     def _inner_(
         **duration: Unpack[_CacheDuration],
     ) -> Callable[[Callable[_P, _R]], _PersistentCache[_P, _R, CacheBackendT]]:
         return persistent_cache(
+            backend=backend,
+            **(duration or default_duration),
+        )
+
+    return _inner_
+
+
+def cached_property_decorator_factory(
+    *,
+    backend: CacheBackendT,
+    **default_duration: Unpack[_CacheDuration],
+) -> Callable[
+    ...,
+    Callable[
+        [Callable[Concatenate[Instance, _P], _R]],
+        _PersistentCachedProperty[Instance, _P, _R, CacheBackendT],
+    ],
+]:
+    def _inner_(
+        **duration: Unpack[_CacheDuration],
+    ) -> Callable[
+        [Callable[Concatenate[Instance, _P], _R]],
+        _PersistentCachedProperty[Instance, _P, _R, CacheBackendT],
+    ]:
+        return persistent_cached_property(
             backend=backend,
             **(duration or default_duration),
         )
