@@ -48,6 +48,7 @@ class _LRUCache(Generic[_P, _R]):
         Returns:
         -------
             _R: The result of the wrapped function.
+
         """
         return self.__wrapped__(*args, **kwargs)
 

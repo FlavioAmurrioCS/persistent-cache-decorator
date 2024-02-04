@@ -27,6 +27,7 @@ class PickleCacheBackend:
     ----------
         _data (dict[str, dict[str, tuple[datetime.datetime, Any]]]): The dictionary that holds the cached data.
         file_path (str): The path to the file where the cached data will be stored.
+
     """  # noqa: E501
 
     _data: dict[str, dict[str, tuple[datetime.datetime, Any]]]
@@ -44,6 +45,7 @@ class PickleCacheBackend:
         Returns
         -------
             dict[str, dict[str, tuple[datetime.datetime, Any]]]: The dictionary that holds the cached data.
+
         """  # noqa: E501
         with suppress(Exception), open(self.file_path, "rb") as f:
             self._data = pickle.load(f)  # noqa: S301
@@ -57,6 +59,7 @@ class PickleCacheBackend:
         Returns
         -------
             str: The path to the file where the cached data was saved.
+
         """
         with open(self.file_path, "wb") as f:
             pickle.dump(self.data, f)
@@ -85,6 +88,7 @@ class PickleCacheBackend:
         Returns:
         -------
             _R: The cached results or the results of calling the function.
+
         """  # noqa: E501
         funcname = func.__qualname__
         args_key = f"args: {args}, kwargs: {kwargs}"
@@ -104,5 +108,6 @@ class PickleCacheBackend:
         Args:
         ----
             func (Callable[..., Any]): The function to delete the cached results for.
+
         """
         del self.data[func.__qualname__]

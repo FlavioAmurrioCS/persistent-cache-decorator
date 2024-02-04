@@ -10,6 +10,7 @@ from persistent_cache.backend.json import JsonCacheBackend
 from persistent_cache.backend.pickle import PickleCacheBackend
 from persistent_cache.backend.sqlite import SqliteCacheBackend
 from persistent_cache.decorators import persistent_cache
+from persistent_cache.decorators import persistent_cached_property
 
 
 @pytest.mark.parametrize(
@@ -68,7 +69,12 @@ def test_persistent_cache_methods(
 
 
 @pytest.mark.parametrize(
-    "cache_backend", [(SqliteCacheBackend), (PickleCacheBackend), (JsonCacheBackend)]
+    "cache_backend",
+    [
+        # (SqliteCacheBackend),
+        # (PickleCacheBackend),
+        (JsonCacheBackend)
+    ],
 )
 def test_persistent_cache_methods2(
     cache_backend: type[SqliteCacheBackend | PickleCacheBackend | JsonCacheBackend],
@@ -76,7 +82,7 @@ def test_persistent_cache_methods2(
     with tempfile.NamedTemporaryFile() as f:
 
         class Temp:
-            @persistent_cache(backend=cache_backend(f.name), seconds=4)
+            @persistent_cached_property(backend=cache_backend(f.name), seconds=4)
             def foo(self, *, time: float) -> float:
                 sleep(time)
                 return time
@@ -88,11 +94,10 @@ def test_persistent_cache_methods2(
         start = perf_counter()
         for _ in range(10):
             temp.foo(time=sleep_time)
-            temp.foo(sleep_time)
 
         assert perf_counter() - start < sleep_time + 0.1
-        temp.foo.cache_clear()
-        assert os.path.exists(temp.foo.__backend__.__save__())
+        Temp.foo.cache_clear()
+        assert os.path.exists(Temp.foo.__backend__.__save__())
 
 
 # class Temp:

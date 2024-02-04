@@ -27,6 +27,7 @@ class JsonCacheBackend:
     ----------
         _data (dict[str, dict[str, tuple[float, Any]]]): The dictionary that stores the cached results.
         file_path (str): The path to the JSON file used for storing the cached results.
+
     """  # noqa: E501
 
     _data: dict[str, dict[str, tuple[float, Any]]]
@@ -44,6 +45,7 @@ class JsonCacheBackend:
         Returns
         -------
             dict[str, dict[str, tuple[float, Any]]]: The dictionary that stores the cached results.
+
         """
         with suppress(Exception), open(self.file_path) as f:
             self._data = json.load(f)
@@ -57,6 +59,7 @@ class JsonCacheBackend:
         Returns
         -------
             str: The path to the JSON file.
+
         """
         with open(self.file_path, "w") as f:
             json.dump(self.data, f)
@@ -83,6 +86,7 @@ class JsonCacheBackend:
         Returns:
         -------
             _R: The cached result or the computed result.
+
         """  # noqa: E501
         funcname = func.__qualname__
         args_key = f"args: {args}, kwargs: {kwargs}"
@@ -105,5 +109,6 @@ class JsonCacheBackend:
         Args:
         ----
             func (Callable[..., Any]): The function to delete the cached results for.
+
         """
         del self.data[func.__qualname__]
