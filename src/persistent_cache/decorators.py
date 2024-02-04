@@ -161,6 +161,14 @@ class _PersistentCache(Generic[_P, _R, CacheBackendT]):
             lifespan=self.__duration__,
         )
 
+    def __set_name__(self, owner: Any, name: str) -> Any:  # noqa: ANN401
+        self.__wrapped__.__name__ = name
+
+    def __get__(self, instance: Any, owner: Any) -> Any:  # noqa: ANN401
+        if owner is None:
+            return self
+        return functools.partial(self.__call__, instance)
+
 
 JSON_CACHE_BACKEND = JsonCacheBackend(filename=os.path.join(_DEFAULT_CACHE_LOCATION, "data.json"))
 PICKLE_CACHE_BACKEND = PickleCacheBackend(
