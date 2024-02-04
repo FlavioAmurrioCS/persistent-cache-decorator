@@ -171,14 +171,6 @@ class _PersistentCache(Generic[_P, _R, CacheBackendT]):
             lifespan=self.__duration__,
         )
 
-    # def __set_name__(self, owner: Any, name: str) -> Any:
-    #     self.__wrapped__.__name__ = name
-
-    # def __get__(self, instance: Any, owner: Any) -> Any:
-    #     if owner is None:
-    #         return self
-    #     return functools.partial(self.__call__, instance)
-
 
 Instance = TypeVar("Instance")
 
