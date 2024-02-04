@@ -32,6 +32,7 @@ class SqliteCacheBackend:
         cursor(): Returns a SQLite cursor object.
         get_cached_results(): Retrieves cached results from the cache.
         del_function_cache(): Deletes cached results for a specific function.
+
     """
 
     file_path: str
@@ -46,6 +47,7 @@ class SqliteCacheBackend:
         Returns
         -------
             str: The file path of the SQLite database.
+
         """
         return self.file_path
 
@@ -57,6 +59,7 @@ class SqliteCacheBackend:
         Returns
         -------
             sqlite3.Connection: A SQLite connection object.
+
         """
         return sqlite3.connect(self.file_path)
 
@@ -68,6 +71,7 @@ class SqliteCacheBackend:
         Returns
         -------
             sqlite3.Cursor: A SQLite cursor object.
+
         """
         connection = self.connection
         cursor = connection.cursor()
@@ -107,6 +111,7 @@ class SqliteCacheBackend:
         Returns:
         -------
             _R: The cached results, if available. Otherwise, the function is called and the results are cached.
+
         """  # noqa: E501
         # Serialize the arguments and keyword arguments
         pickled_args = pickle.dumps(args)
@@ -167,6 +172,7 @@ class SqliteCacheBackend:
         Args:
         ----
             func (Callable[..., Any]): The function to delete cached results for.
+
         """
         self.cursor.execute(
             """

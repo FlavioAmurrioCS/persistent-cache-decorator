@@ -22,5 +22,10 @@
   "reorder-python-imports.args": [
     "--application-directories=.:src",
     "--add-import 'from __future__ import annotations'",
-  ]
+  ],
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
