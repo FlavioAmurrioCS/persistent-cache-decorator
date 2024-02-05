@@ -11,6 +11,7 @@
 - [persistent-cache-decorator](#persistent-cache-decorator)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Cached Property](#cached-property)
   - [Creating a custom cache backend](#creating-a-custom-cache-backend)
   - [License](#license)
 
@@ -60,6 +61,51 @@ Runtime type is '_persistent_cache'
 >>>
 >>> # Call function(takes 5 seconds)
 >>> long_func(5)
+```
+
+## Cached Property
+```python
+from typing import Any, NamedTuple
+from persistent_cache.decorators import json_cached_property
+from persistent_cache.decorators import json_cache
+
+# To cache instance methods, use the json_cache decorator you can do the following:
+# Reference: https://www.youtube.com/watch?v=sVjtp6tGo0g
+class Pet:
+    def __init__(self, name: str, age: int) -> None:
+        self.name = name
+        self.age = age
+        # creating the cache function this way will allow the cache to be cleared using the instance
+        # It will also only use the arguments as the key
+        self.online_information = json_cache(days=2)(self._online_information)
+
+    def _online_information(self, source: str) -> Any:
+        ...
+
+pet = Pet("Rex", 5)
+pet.online_information(source="https://api.github.com/users/rex")
+pet.online_information.cache_clear()
+
+
+
+# NEW: or you can use the json_cached_property decorator to cache the result of a method
+# This makes use of Python's Descriptors: https://www.youtube.com/watch?v=vBys0SwYvCQ
+class Person(NamedTuple):
+    name: str
+    age: int
+
+    # The decorator works with Namedtuples as well as with classes
+    @json_cached_property(days=2)
+    def online_information(self, source: str) -> Any:
+        ...
+
+person = Person("John", 30)
+
+# The following call will cache the result using the class instance as well as the arguments as the key
+person.online_information(source="https://api.github.com/users/john")
+
+# To clear the cache, use the method from the class directly
+Person.online_information.cache_clear()
 ```
 
 ## Creating a custom cache backend
