@@ -1,0 +1,18 @@
+name: main
+
+on:
+  push:
+    branches: [main, test-me-*]
+    tags: "*"
+  pull_request:
+
+jobs:
+  main:
+    uses: FlavioAmurrioCS/workflows/.github/workflows/common-python.yml@main
+    permissions:
+      contents: write
+      id-token: write
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+    with:
+      pypa-name: ${{ github.event.repository.name }}
