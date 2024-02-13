@@ -14,5 +14,3 @@ jobs:
       id-token: write
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-    with:
-      pypa-name: ${{ github.event.repository.name }}
