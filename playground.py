@@ -1,28 +1,4 @@
-# persistent-cache-decorator
-
-[![PyPI - Version](https://img.shields.io/pypi/v/persistent-cache-decorator.svg)](https://pypi.org/project/persistent-cache-decorator)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/persistent-cache-decorator.svg)](https://pypi.org/project/persistent-cache-decorator)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/FlavioAmurrioCS/persistent-cache-decorator/main.svg)](https://results.pre-commit.ci/latest/github/FlavioAmurrioCS/persistent-cache-decorator/main)
-
------
-
-**Table of Contents**
-
-- [persistent-cache-decorator](#persistent-cache-decorator)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Cached Property](#cached-property)
-  - [Creating a custom cache backend](#creating-a-custom-cache-backend)
-  - [License](#license)
-
-## Installation
-
-```console
-pip install persistent-cache-decorator
-```
-
-## Usage
-```python
+# region: Usage
 from __future__ import annotations
 
 import time
@@ -64,10 +40,12 @@ long_func.cache_clear()
 
 # Call function(takes 5 seconds)
 long_func(5)
-```
 
-## Cached Property
-```python
+# endregion: Usage
+
+
+# region: Cached Property
+
 from typing import NamedTuple  # noqa: E402
 from persistent_cache.decorators import json_cached_property  # noqa: E402
 from persistent_cache.decorators import json_cache  # noqa: E402
@@ -113,11 +91,11 @@ person.online_information(source="https://api.github.com/users/john")
 
 # To clear the cache, use the method from the class directly
 Person.online_information.cache_clear()
-```
 
-## Creating a custom cache backend
+# endregion: Cached Property
 
-```python
+
+# region: Creating a custom cache backend
 from typing_extensions import Unpack, Any  # noqa: E402
 from typing import Callable  # noqa: E402
 import datetime  # noqa: E402
@@ -186,8 +164,6 @@ def foo2(time: float) -> float:
 
     sleep(time)
     return time
-```
 
-## License
 
-`persistent-cache-decorator` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+# endregion: Creating a custom cache backend
