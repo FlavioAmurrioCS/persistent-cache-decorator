@@ -4,12 +4,12 @@ import datetime
 import functools
 import os
 from pathlib import Path
-from typing import Any
 from typing import Callable
 from typing import Generic
 from typing import overload
 from typing import TYPE_CHECKING
 
+from persistent_cache.backend import _CacheBackend
 from persistent_cache.backend.json import JsonCacheBackend
 from persistent_cache.backend.pickle import PickleCacheBackend
 from persistent_cache.backend.sqlite import SqliteCacheBackend
@@ -62,44 +62,7 @@ _P = ParamSpec("_P")
 DEFAULT_CACHE_LOCATION = Path("~/.cache/persistent_cache").expanduser()
 
 
-class _CacheBackend(Protocol):
-    """Interface for cache backends used by the persistent cache decorator."""
-
-    def get_cached_results(
-        self,
-        *,
-        func: Callable[..., _R],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
-        lifespan: datetime.timedelta,
-    ) -> _R:
-        """
-        Retrieve the cached results for a function call.
-
-        Args:
-        ----
-            func (Callable[..., _R]): The function to retrieve cached results for.
-            args (tuple[Any, ...]): The positional arguments passed to the function.
-            kwargs (dict[str, Any]): The keyword arguments passed to the function.
-            lifespan (datetime.timedelta): The maximum age of the cached results.
-
-        Returns:
-        -------
-            _R: The cached results, if available.
-
-        """
-        ...  # no cov
-
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
-        """
-        Delete the cache for a specific function.
-
-        Args:
-        ----
-            func (Callable[..., Any]): The function to delete the cache for.
-
-        """
-        ...  # no cov
+K = TypeVar("K")
 
 
 _CacheBackendT = TypeVar("_CacheBackendT", bound=_CacheBackend)
@@ -183,9 +146,15 @@ class _PersistentCache(Generic[_P, _R, _CacheBackendT]):
         )
 
 
-CACHE_BACKEND_JSON = JsonCacheBackend(DEFAULT_CACHE_LOCATION.joinpath("data.json").as_posix())
-CACHE_BACKEND_PICKLE = PickleCacheBackend(DEFAULT_CACHE_LOCATION.joinpath("data.pickle").as_posix())
-CACHE_BACKEND_SQLITE = SqliteCacheBackend(DEFAULT_CACHE_LOCATION.joinpath("data.sqlite").as_posix())
+CACHE_BACKEND_JSON: _CacheBackend = JsonCacheBackend(
+    DEFAULT_CACHE_LOCATION.joinpath("data.json").as_posix()
+)
+CACHE_BACKEND_PICKLE: _CacheBackend = PickleCacheBackend(
+    DEFAULT_CACHE_LOCATION.joinpath("data.pickle").as_posix()
+)
+CACHE_BACKEND_SQLITE: _CacheBackend = SqliteCacheBackend(
+    DEFAULT_CACHE_LOCATION.joinpath("data.sqlite").as_posix()
+)
 DEFAULT_CACHE_DURATION: _CacheDuration = {"days": 1}
 
 

@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import atexit
-import datetime
 import functools
 import json
 from contextlib import suppress
+from datetime import datetime
 from typing import Any
 from typing import Callable
-from typing import TypeVar
 
-_R = TypeVar("_R")
+from persistent_cache.backend import CacheBackendBase
 
 
-class JsonCacheBackend:
+class JsonCacheBackend(CacheBackendBase[str, Any]):
     """
     A cache backend that stores cached results in a JSON file.
 
@@ -65,42 +64,20 @@ class JsonCacheBackend:
             json.dump(self.data, f)
         return self.file_path
 
-    def get_cached_results(
-        self,
-        *,
-        func: Callable[..., _R],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
-        lifespan: datetime.timedelta,
-    ) -> _R:
-        """
-        Retrieves the cached result for a given function and arguments, or computes and caches the result if it's not available or expired.
+    def get_cached_result(self, *, key: tuple[str, str]) -> tuple[float, Any] | None:
+        funcname, args_key = key
+        result_pair = self.data.get(funcname, {}).get(args_key, None)
+        if result_pair is None:
+            return None
+        date, data = result_pair
+        return date, data
 
-        Args:
-        ----
-            func (Callable[..., _R]): The function to retrieve or compute the result for.
-            args (tuple[Any, ...]): The positional arguments for the function.
-            kwargs (dict[str, Any]): The keyword arguments for the function.
-            lifespan (datetime.timedelta): The maximum lifespan of the cached result.
-
-        Returns:
-        -------
-            _R: The cached result or the computed result.
-
-        """  # noqa: E501
-        funcname = func.__qualname__
-        args_key = f"args: {args}, kwargs: {kwargs}"
-        date, result = self.data.get(funcname, {}).get(args_key, (None, None))
-        if (
-            date is None
-            or datetime.datetime.now() - datetime.datetime.fromtimestamp(date) > lifespan  # noqa: DTZ005, DTZ006
-        ):
-            result = func(*args, **kwargs)
-            self.data.setdefault(funcname, {})[args_key] = (
-                datetime.datetime.now().timestamp(),  # noqa: DTZ005
-                result,
-            )
-        return result  # type:ignore
+    def set_cached_result(self, *, key: tuple[str, str], data: Any) -> None:  # noqa: ANN401
+        funcname, args_key = key
+        self.data.setdefault(funcname, {})[args_key] = (
+            datetime.now().timestamp(),  # noqa: DTZ005
+            data,
+        )
 
     def del_function_cache(self, *, func: Callable[..., Any]) -> None:
         """
