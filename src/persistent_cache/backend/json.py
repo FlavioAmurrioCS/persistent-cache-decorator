@@ -76,7 +76,6 @@ class JsonCacheBackend(AbstractCacheBackend[str, Any]):
         funcname, args_key = key
         with suppress(KeyError):
             del self.data[funcname][args_key]
-            self.__save__()  # TODO: REMOTE THIS BEFORE COMMIT
 
     def put(self, *, key: tuple[str, str], data: Any) -> None:  # noqa: ANN401
         funcname, args_key = key
@@ -84,7 +83,6 @@ class JsonCacheBackend(AbstractCacheBackend[str, Any]):
             datetime.datetime.now().timestamp(),  # noqa: DTZ005
             data,
         )
-        self.__save__()  # TODO: REMOTE THIS BEFORE COMMIT
 
     def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
