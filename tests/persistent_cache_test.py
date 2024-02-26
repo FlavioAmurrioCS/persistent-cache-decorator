@@ -26,7 +26,7 @@ def test_persistent_cache(
             sleep(time)
             return time
 
-        sleep_time = 0.2
+        sleep_time = 0.5
 
         start = perf_counter()
         for _ in range(10):
@@ -57,7 +57,7 @@ def test_persistent_cache_methods(
 
         temp = Temp()
 
-        sleep_time = 0.2
+        sleep_time = 0.5
 
         start = perf_counter()
         for _ in range(10):
@@ -89,7 +89,7 @@ def test_persistent_cache_methods2(
 
         temp = Temp()
 
-        sleep_time = 0.2
+        sleep_time = 0.5
 
         start = perf_counter()
         for _ in range(10):
