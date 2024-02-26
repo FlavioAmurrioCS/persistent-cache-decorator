@@ -8,10 +8,10 @@ from datetime import datetime
 from typing import Any
 from typing import Callable
 
-from persistent_cache.backend import CacheBackendBase
+from persistent_cache.backend import AbstractCacheBackend
 
 
-class JsonCacheBackend(CacheBackendBase[str, Any]):
+class JsonCacheBackend(AbstractCacheBackend[str, Any]):
     """
     A cache backend that stores cached results in a JSON file.
 
@@ -64,7 +64,7 @@ class JsonCacheBackend(CacheBackendBase[str, Any]):
             json.dump(self.data, f)
         return self.file_path
 
-    def get_cached_result(self, *, key: tuple[str, str]) -> tuple[float, Any] | None:
+    def get(self, *, key: tuple[str, str]) -> tuple[float, Any] | None:
         funcname, args_key = key
         result_pair = self.data.get(funcname, {}).get(args_key, None)
         if result_pair is None:
@@ -72,14 +72,14 @@ class JsonCacheBackend(CacheBackendBase[str, Any]):
         date, data = result_pair
         return date, data
 
-    def set_cached_result(self, *, key: tuple[str, str], data: Any) -> None:  # noqa: ANN401
+    def put(self, *, key: tuple[str, str], data: Any) -> None:  # noqa: ANN401
         funcname, args_key = key
         self.data.setdefault(funcname, {})[args_key] = (
             datetime.now().timestamp(),  # noqa: DTZ005
             data,
         )
 
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
         Deletes the cached results for a given function.
 

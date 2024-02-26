@@ -27,10 +27,9 @@ from __future__ import annotations
 
 import time
 
+from persistent_cache.backend import CacheBackend
+from persistent_cache.decorators import json_cache
 from persistent_cache.decorators import persistent_cache
-# from persistent_cache.decorators import json_cache # Can also use one of this specific cache methods  # noqa: E501
-# from persistent_cache.decorators import pickle_cache # Can also use one of this specific cache methods  # noqa: E501
-# from persistent_cache.decorators import sqlite_cache # Can also use one of this specific cache methods  # noqa: E501
 
 
 @persistent_cache(minutes=4)
@@ -70,7 +69,6 @@ long_func(5)
 ```python
 from typing import NamedTuple  # noqa: E402
 from persistent_cache.decorators import json_cached_property  # noqa: E402
-from persistent_cache.decorators import json_cache  # noqa: E402
 
 
 # To cache instance methods, use the json_cache decorator you can do the following:
@@ -118,22 +116,19 @@ Person.online_information.cache_clear()
 ## Creating a custom cache backend
 
 ```python
-from typing_extensions import Unpack, Any  # noqa: E402
+from typing_extensions import Any  # noqa: E402
 from typing import Callable  # noqa: E402
-import datetime  # noqa: E402
 from persistent_cache.decorators import cache_decorator_factory  # noqa: E402
 from typing import TYPE_CHECKING  # noqa: E402
-from persistent_cache.decorators import _PersistentCache  # noqa: E402
 
 if TYPE_CHECKING:
-    from persistent_cache.decorators import _CacheDuration
-    from persistent_cache.decorators import _P
+    import datetime
     from persistent_cache.decorators import _R
 
 
 # Define a custom cache backend
-class RedisCacheBackend:
-    def get_cached_results(  # type: ignore[empty-body]
+class RedisCacheBackend(CacheBackend):
+    def get_cache_or_call(  # type: ignore[empty-body]
         self,
         *,
         func: Callable[..., _R],
@@ -143,7 +138,7 @@ class RedisCacheBackend:
     ) -> _R:
         ...
 
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         ...
 
 
@@ -151,37 +146,11 @@ class RedisCacheBackend:
 REDIS_CACHE_BACKEND = RedisCacheBackend()
 
 # Quick way of defining a decorator. You can use this if you want multiple decorators with different cache durations.  # noqa: E501
-# It does have some typing hinting issues though :/
-quick_redis_cache = cache_decorator_factory(backend=REDIS_CACHE_BACKEND)
+redis_cache = cache_decorator_factory(backend=REDIS_CACHE_BACKEND)
 
 
-@quick_redis_cache(days=1)
+@redis_cache(days=1)
 def foo(time: float) -> float:
-    from time import sleep
-
-    sleep(time)
-    return time
-
-
-# This is the recommended way of defining a decorator. It has better typing hinting.
-def redis_cache(
-    **duration: Unpack[_CacheDuration],
-) -> Callable[[Callable[_P, _R]], _PersistentCache[_P, _R, RedisCacheBackend]]:
-    duration = duration or {"days": 1}  # You can set your own default cache duration.
-    mcache_duration = datetime.timedelta(**duration)
-
-    def inner(func: Callable[_P, _R]) -> _PersistentCache[_P, _R, RedisCacheBackend]:
-        return _PersistentCache(
-            func=func,
-            duration=mcache_duration,
-            backend=REDIS_CACHE_BACKEND,
-        )
-
-    return inner
-
-
-@redis_cache(days=1, seconds=1)
-def foo2(time: float) -> float:
     from time import sleep
 
     sleep(time)

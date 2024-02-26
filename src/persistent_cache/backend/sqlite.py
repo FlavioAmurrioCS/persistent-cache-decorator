@@ -8,10 +8,10 @@ from typing import Any
 from typing import Callable
 from typing import Tuple
 
-from persistent_cache.backend import CacheBackendBase
+from persistent_cache.backend import AbstractCacheBackend
 
 
-class SqliteCacheBackend(CacheBackendBase[Tuple[bytes, bytes], bytes]):
+class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
     """
     A cache backend implementation using SQLite as the storage.
 
@@ -88,16 +88,14 @@ class SqliteCacheBackend(CacheBackendBase[Tuple[bytes, bytes], bytes]):
         connection.commit()
         return cursor
 
-    def get_hash_key(
+    def hash_key(
         self, *, func: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]
     ) -> tuple[str, tuple[bytes, bytes]]:
         pickled_args = pickle.dumps(args)
         pickled_kwargs = pickle.dumps(kwargs)
         return (func.__qualname__, (pickled_args, pickled_kwargs))
 
-    def get_cached_result(
-        self, *, key: tuple[str, tuple[bytes, bytes]]
-    ) -> tuple[float, bytes] | None:
+    def get(self, *, key: tuple[str, tuple[bytes, bytes]]) -> tuple[float, bytes] | None:
         func_key, (args_key, kwargs_key) = key
         self.cursor.execute(
             """
@@ -117,7 +115,7 @@ class SqliteCacheBackend(CacheBackendBase[Tuple[bytes, bytes], bytes]):
         )
         return cached_time.timestamp(), pickled_result
 
-    def set_cached_result(self, *, key: tuple[str, tuple[bytes, bytes]], data: bytes) -> None:
+    def put(self, *, key: tuple[str, tuple[bytes, bytes]], data: bytes) -> None:
         funcname, (pickled_args, pickled_kwargs) = key
         self.cursor.execute(
             """
@@ -128,7 +126,7 @@ class SqliteCacheBackend(CacheBackendBase[Tuple[bytes, bytes], bytes]):
         )
         self.connection.commit()
 
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
         Deletes cached results for a specific function.
 

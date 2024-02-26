@@ -15,10 +15,10 @@ _KEY_T = TypeVar("_KEY_T")
 _STORE_T = TypeVar("_STORE_T")
 
 
-class _CacheBackend(Protocol):
+class CacheBackend(Protocol):
     """Interface for cache backends used by the persistent cache decorator."""
 
-    def get_cached_results(
+    def get_cache_or_call(
         self,
         *,
         func: Callable[_P, Any],
@@ -43,7 +43,7 @@ class _CacheBackend(Protocol):
         """
         ...  # no cov
 
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
         Delete the cache for a specific function.
 
@@ -55,10 +55,10 @@ class _CacheBackend(Protocol):
         ...  # no cov
 
 
-class CacheBackendBase(_CacheBackend, Protocol[_KEY_T, _STORE_T]):
+class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
     """Interface for cache backends used by the persistent cache decorator."""
 
-    def get_hash_key(
+    def hash_key(
         self,
         *,
         func: Callable[_P, Any],
@@ -67,19 +67,19 @@ class CacheBackendBase(_CacheBackend, Protocol[_KEY_T, _STORE_T]):
     ) -> tuple[str, _KEY_T]:
         return func.__qualname__, f"args: {args}, kwargs: {kwargs}"  # type: ignore
 
-    def get_cached_result(self, *, key: tuple[str, _KEY_T]) -> tuple[float, _STORE_T] | None:
+    def get(self, *, key: tuple[str, _KEY_T]) -> tuple[float, _STORE_T] | None:
         ...
 
-    def set_cached_result(self, *, key: tuple[str, _KEY_T], data: _STORE_T) -> None:
+    def put(self, *, key: tuple[str, _KEY_T], data: _STORE_T) -> None:
         ...
 
-    def data_decode(self, *, data: _STORE_T) -> Any:  # noqa: ANN401
+    def decode(self, *, data: _STORE_T) -> Any:  # noqa: ANN401
         return data
 
-    def data_encode(self, *, data: Any) -> _STORE_T:  # noqa: ANN401
+    def encode(self, *, data: Any) -> _STORE_T:  # noqa: ANN401
         return data
 
-    def get_cached_results(
+    def get_cache_or_call(
         self,
         *,
         func: Callable[_P, Any],
@@ -102,19 +102,22 @@ class CacheBackendBase(_CacheBackend, Protocol[_KEY_T, _STORE_T]):
             _R: The cached results, if available.
 
         """
-        key = self.get_hash_key(func=func, args=args, kwargs=kwargs)
-        result_pair = self.get_cached_result(key=key)
+        if os.environ.get("NO_CACHE"):
+            return func(*args, **kwargs)
+
+        key = self.hash_key(func=func, args=args, kwargs=kwargs)
+        result_pair = self.get(key=key)
         if (
             os.environ.get("RE_CACHE")
             or result_pair is None
             or datetime.datetime.now() - datetime.datetime.fromtimestamp(result_pair[0]) > lifespan  # noqa: DTZ005, DTZ006
         ):
             result = func(*args, **kwargs)
-            self.set_cached_result(key=key, data=self.data_encode(data=result))
+            self.put(key=key, data=self.encode(data=result))
             return result
-        return self.data_decode(data=result_pair[1])
+        return self.decode(data=result_pair[1])
 
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
         Delete the cache for a specific function.
 
@@ -124,19 +127,3 @@ class CacheBackendBase(_CacheBackend, Protocol[_KEY_T, _STORE_T]):
 
         """
         ...  # no cov
-
-
-# funcname = func.__qualname__
-# args_key = f"args: {args}, kwargs: {kwargs}"
-# date, result = self.data.get(funcname, {}).get(args_key, (None, None))
-# if (
-#     os.environ.get("RE_CACHE")
-#     or date is None
-#     or datetime.datetime.now() - datetime.datetime.fromtimestamp(date) > lifespan
-# ):
-#     result = func(*args, **kwargs)
-#     self.data.setdefault(funcname, {})[args_key] = (
-#         datetime.datetime.now().timestamp(),
-#         result,
-#     )
-# return result  # type:ignore
