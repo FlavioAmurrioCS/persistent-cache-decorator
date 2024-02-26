@@ -318,3 +318,17 @@ def cached_property_decorator_factory(
 json_cached_property = cached_property_decorator_factory(backend=CACHE_BACKEND_JSON)
 pickle_cached_property = cached_property_decorator_factory(backend=CACHE_BACKEND_PICKLE)
 sqlite_cached_property = cached_property_decorator_factory(backend=CACHE_BACKEND_SQLITE)
+
+
+if __name__ == "__main__":
+    import time
+
+    @json_cache(seconds=10)
+    def main(tm: int) -> None:
+        time.sleep(tm)
+
+    for _ in range(10):
+        checkpoint = time.perf_counter()
+        main(3)
+        delta = time.perf_counter() - checkpoint
+        print(f"{delta:.2f} seconds")

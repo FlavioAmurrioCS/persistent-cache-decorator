@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import atexit
+import datetime
 import functools
 import json
 from contextlib import suppress
-from datetime import datetime
 from typing import Any
 from typing import Callable
 
@@ -64,20 +64,27 @@ class JsonCacheBackend(AbstractCacheBackend[str, Any]):
             json.dump(self.data, f)
         return self.file_path
 
-    def get(self, *, key: tuple[str, str]) -> tuple[float, Any] | None:
+    def get(self, *, key: tuple[str, str]) -> tuple[datetime.datetime, Any] | None:
         funcname, args_key = key
         result_pair = self.data.get(funcname, {}).get(args_key, None)
         if result_pair is None:
             return None
         date, data = result_pair
-        return date, data
+        return datetime.datetime.fromtimestamp(date), data  # noqa: DTZ006
+
+    def delete(self, *, key: tuple[str, str]) -> None:
+        funcname, args_key = key
+        with suppress(KeyError):
+            del self.data[funcname][args_key]
+            self.__save__()  # TODO: REMOTE THIS BEFORE COMMIT
 
     def put(self, *, key: tuple[str, str], data: Any) -> None:  # noqa: ANN401
         funcname, args_key = key
         self.data.setdefault(funcname, {})[args_key] = (
-            datetime.now().timestamp(),  # noqa: DTZ005
+            datetime.datetime.now().timestamp(),  # noqa: DTZ005
             data,
         )
+        self.__save__()  # TODO: REMOTE THIS BEFORE COMMIT
 
     def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
@@ -88,4 +95,4 @@ class JsonCacheBackend(AbstractCacheBackend[str, Any]):
             func (Callable[..., Any]): The function to delete the cached results for.
 
         """
-        del self.data[func.__qualname__]
+        self.data.pop(func.__qualname__, None)

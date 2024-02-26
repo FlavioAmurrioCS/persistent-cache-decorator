@@ -26,7 +26,7 @@ def test_persistent_cache(
             sleep(time)
             return time
 
-        sleep_time = 0.5
+        sleep_time = 0.2
 
         start = perf_counter()
         for _ in range(10):
@@ -57,7 +57,7 @@ def test_persistent_cache_methods(
 
         temp = Temp()
 
-        sleep_time = 0.5
+        sleep_time = 0.2
 
         start = perf_counter()
         for _ in range(10):
@@ -89,7 +89,7 @@ def test_persistent_cache_methods2(
 
         temp = Temp()
 
-        sleep_time = 0.5
+        sleep_time = 0.2
 
         start = perf_counter()
         for _ in range(10):
@@ -98,16 +98,3 @@ def test_persistent_cache_methods2(
         assert perf_counter() - start < sleep_time + 0.1
         Temp.foo.cache_clear()
         assert os.path.exists(Temp.foo.__backend__.__save__())
-
-
-# class Temp:
-#     # @lru_cache
-#     @json_cache(seconds=4)
-#     def foo(self, time: float) -> float:
-#         sleep(time)
-#         return time
-
-
-# temp = Temp()
-# temp.foo(0.2)
-# temp.foo(0.2)

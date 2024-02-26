@@ -67,7 +67,10 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
     ) -> tuple[str, _KEY_T]:
         return func.__qualname__, f"args: {args}, kwargs: {kwargs}"  # type: ignore
 
-    def get(self, *, key: tuple[str, _KEY_T]) -> tuple[float, _STORE_T] | None:
+    def get(self, *, key: tuple[str, _KEY_T]) -> tuple[datetime.datetime, _STORE_T] | None:
+        ...
+
+    def delete(self, *, key: tuple[str, _KEY_T]) -> None:
         ...
 
     def put(self, *, key: tuple[str, _KEY_T], data: _STORE_T) -> None:
@@ -107,15 +110,17 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
 
         key = self.hash_key(func=func, args=args, kwargs=kwargs)
         result_pair = self.get(key=key)
-        if (
-            os.environ.get("RE_CACHE")
-            or result_pair is None
-            or datetime.datetime.now() - datetime.datetime.fromtimestamp(result_pair[0]) > lifespan  # noqa: DTZ005, DTZ006
-        ):
-            result = func(*args, **kwargs)
-            self.put(key=key, data=self.encode(data=result))
-            return result
-        return self.decode(data=result_pair[1])
+
+        if result_pair is not None:
+            cached_time, result = result_pair
+            if not os.environ.get("RE_CACHE") and (
+                datetime.datetime.now() < (cached_time + lifespan)  # noqa: DTZ005
+            ):
+                return self.decode(data=result)
+            self.delete(key=key)
+        result = func(*args, **kwargs)
+        self.put(key=key, data=self.encode(data=result))
+        return result
 
     def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """

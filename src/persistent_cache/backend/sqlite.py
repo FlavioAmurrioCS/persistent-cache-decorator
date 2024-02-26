@@ -95,7 +95,9 @@ class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
         pickled_kwargs = pickle.dumps(kwargs)
         return (func.__qualname__, (pickled_args, pickled_kwargs))
 
-    def get(self, *, key: tuple[str, tuple[bytes, bytes]]) -> tuple[float, bytes] | None:
+    def get(
+        self, *, key: tuple[str, tuple[bytes, bytes]]
+    ) -> tuple[datetime.datetime, bytes] | None:
         func_key, (args_key, kwargs_key) = key
         self.cursor.execute(
             """
@@ -113,7 +115,18 @@ class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
             timestamp,
             "%Y-%m-%d %H:%M:%S",
         )
-        return cached_time.timestamp(), pickled_result
+        return cached_time, pickled_result
+
+    def delete(self, *, key: tuple[str, tuple[bytes, bytes]]) -> None:
+        funcname, (pickled_args, pickled_kwargs) = key
+        self.cursor.execute(
+            """
+            DELETE FROM cache
+            WHERE function = ? AND args = ? AND kwargs = ?
+        """,
+            (funcname, pickled_args, pickled_kwargs),
+        )
+        self.connection.commit()
 
     def put(self, *, key: tuple[str, tuple[bytes, bytes]], data: bytes) -> None:
         funcname, (pickled_args, pickled_kwargs) = key
