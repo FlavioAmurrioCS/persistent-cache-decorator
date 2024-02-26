@@ -6,14 +6,12 @@ import pickle
 import sqlite3
 from typing import Any
 from typing import Callable
+from typing import Tuple
 
-from typing_extensions import TypeVar
-
-
-_R = TypeVar("_R")
+from persistent_cache.backend import AbstractCacheBackend
 
 
-class SqliteCacheBackend:
+class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
     """
     A cache backend implementation using SQLite as the storage.
 
@@ -90,82 +88,58 @@ class SqliteCacheBackend:
         connection.commit()
         return cursor
 
-    def get_cached_results(
-        self,
-        *,
-        func: Callable[..., _R],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
-        lifespan: datetime.timedelta,
-    ) -> _R:
-        """
-        Retrieves cached results from the cache.
-
-        Args:
-        ----
-            func (Callable[..., _R]): The function to retrieve cached results for.
-            args (tuple[Any, ...]): The arguments passed to the function.
-            kwargs (dict[str, Any]): The keyword arguments passed to the function.
-            lifespan (datetime.timedelta): The lifespan of the cached results.
-
-        Returns:
-        -------
-            _R: The cached results, if available. Otherwise, the function is called and the results are cached.
-
-        """  # noqa: E501
-        # Serialize the arguments and keyword arguments
+    def hash_key(
+        self, *, func: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]
+    ) -> tuple[str, tuple[bytes, bytes]]:
         pickled_args = pickle.dumps(args)
         pickled_kwargs = pickle.dumps(kwargs)
+        return (func.__qualname__, (pickled_args, pickled_kwargs))
 
-        # region: Get cached entry
+    def get(
+        self, *, key: tuple[str, tuple[bytes, bytes]]
+    ) -> tuple[datetime.datetime, bytes] | None:
+        func_key, (args_key, kwargs_key) = key
         self.cursor.execute(
             """
             SELECT result, timestamp FROM cache
             WHERE function = ? AND args = ? AND kwargs = ?
         """,
-            (func.__qualname__, pickled_args, pickled_kwargs),
+            (func_key, args_key, kwargs_key),
         )
         cached_result = self.cursor.fetchone()
-        # endregion: Get cached entry
+        if not cached_result:
+            return None
 
-        if cached_result:
-            pickled_result, timestamp = cached_result
-            cached_time = datetime.datetime.strptime(  # noqa: DTZ007
-                timestamp,
-                "%Y-%m-%d %H:%M:%S",
-            )
+        pickled_result, timestamp = cached_result
+        cached_time = datetime.datetime.strptime(  # noqa: DTZ007
+            timestamp,
+            "%Y-%m-%d %H:%M:%S",
+        )
+        return cached_time, pickled_result
 
-            if datetime.datetime.now() < cached_time + lifespan:  # noqa: DTZ005
-                return pickle.loads(pickled_result)  # noqa: S301
+    def delete(self, *, key: tuple[str, tuple[bytes, bytes]]) -> None:
+        funcname, (pickled_args, pickled_kwargs) = key
+        self.cursor.execute(
+            """
+            DELETE FROM cache
+            WHERE function = ? AND args = ? AND kwargs = ?
+        """,
+            (funcname, pickled_args, pickled_kwargs),
+        )
+        self.connection.commit()
 
-            # region: Delete expired cache entry
-            self.cursor.execute(
-                """
-                DELETE FROM cache
-                WHERE function = ? AND args = ? AND kwargs = ?
-            """,
-                (func.__qualname__, pickled_args, pickled_kwargs),
-            )
-            self.connection.commit()
-            # endregion: Delete expired cache entry
-
-        result = func(*args, **kwargs)
-
-        # region: Save result to cache
-        pickled_result = pickle.dumps(result)
+    def put(self, *, key: tuple[str, tuple[bytes, bytes]], data: bytes) -> None:
+        funcname, (pickled_args, pickled_kwargs) = key
         self.cursor.execute(
             """
             INSERT INTO cache (function, args, kwargs, result)
             VALUES (?, ?, ?, ?)
         """,
-            (func.__qualname__, pickled_args, pickled_kwargs, pickled_result),
+            (funcname, pickled_args, pickled_kwargs, data),
         )
         self.connection.commit()
-        # endregion: Save result to cache
 
-        return result
-
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
         Deletes cached results for a specific function.
 

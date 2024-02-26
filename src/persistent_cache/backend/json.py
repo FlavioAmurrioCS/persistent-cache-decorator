@@ -7,12 +7,11 @@ import json
 from contextlib import suppress
 from typing import Any
 from typing import Callable
-from typing import TypeVar
 
-_R = TypeVar("_R")
+from persistent_cache.backend import AbstractCacheBackend
 
 
-class JsonCacheBackend:
+class JsonCacheBackend(AbstractCacheBackend[str, Any]):
     """
     A cache backend that stores cached results in a JSON file.
 
@@ -65,44 +64,27 @@ class JsonCacheBackend:
             json.dump(self.data, f)
         return self.file_path
 
-    def get_cached_results(
-        self,
-        *,
-        func: Callable[..., _R],
-        args: tuple[Any, ...],
-        kwargs: dict[str, Any],
-        lifespan: datetime.timedelta,
-    ) -> _R:
-        """
-        Retrieves the cached result for a given function and arguments, or computes and caches the result if it's not available or expired.
+    def get(self, *, key: tuple[str, str]) -> tuple[datetime.datetime, Any] | None:
+        funcname, args_key = key
+        result_pair = self.data.get(funcname, {}).get(args_key, None)
+        if result_pair is None:
+            return None
+        date, data = result_pair
+        return datetime.datetime.fromtimestamp(date), data  # noqa: DTZ006
 
-        Args:
-        ----
-            func (Callable[..., _R]): The function to retrieve or compute the result for.
-            args (tuple[Any, ...]): The positional arguments for the function.
-            kwargs (dict[str, Any]): The keyword arguments for the function.
-            lifespan (datetime.timedelta): The maximum lifespan of the cached result.
+    def delete(self, *, key: tuple[str, str]) -> None:
+        funcname, args_key = key
+        with suppress(KeyError):
+            del self.data[funcname][args_key]
 
-        Returns:
-        -------
-            _R: The cached result or the computed result.
+    def put(self, *, key: tuple[str, str], data: Any) -> None:  # noqa: ANN401
+        funcname, args_key = key
+        self.data.setdefault(funcname, {})[args_key] = (
+            datetime.datetime.now().timestamp(),  # noqa: DTZ005
+            data,
+        )
 
-        """  # noqa: E501
-        funcname = func.__qualname__
-        args_key = f"args: {args}, kwargs: {kwargs}"
-        date, result = self.data.get(funcname, {}).get(args_key, (None, None))
-        if (
-            date is None
-            or datetime.datetime.now() - datetime.datetime.fromtimestamp(date) > lifespan  # noqa: DTZ005, DTZ006
-        ):
-            result = func(*args, **kwargs)
-            self.data.setdefault(funcname, {})[args_key] = (
-                datetime.datetime.now().timestamp(),  # noqa: DTZ005
-                result,
-            )
-        return result  # type:ignore
-
-    def del_function_cache(self, *, func: Callable[..., Any]) -> None:
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
         """
         Deletes the cached results for a given function.
 
@@ -111,4 +93,4 @@ class JsonCacheBackend:
             func (Callable[..., Any]): The function to delete the cached results for.
 
         """
-        del self.data[func.__qualname__]
+        self.data.pop(func.__qualname__, None)
