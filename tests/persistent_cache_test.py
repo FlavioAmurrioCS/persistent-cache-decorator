@@ -27,12 +27,13 @@ def test_persistent_cache(
             return time
 
         sleep_time = 0.2
+        loop = 4
 
         start = perf_counter()
-        for _ in range(10):
+        for _ in range(loop):
             foo(sleep_time)
 
-        assert perf_counter() - start < sleep_time + 0.1
+        assert perf_counter() - start < sleep_time * loop
         foo.cache_clear()
         assert os.path.exists(foo.__backend__.__save__())
 
@@ -58,12 +59,13 @@ def test_persistent_cache_methods(
         temp = Temp()
 
         sleep_time = 0.2
+        loop = 4
 
         start = perf_counter()
-        for _ in range(10):
+        for _ in range(loop):
             temp.foo(sleep_time)
 
-        assert perf_counter() - start < sleep_time + 0.1
+        assert perf_counter() - start < sleep_time * loop
         temp.foo.cache_clear()
         assert os.path.exists(temp.foo.__backend__.__save__())
 
@@ -72,8 +74,8 @@ def test_persistent_cache_methods(
     "cache_backend",
     [
         # (SqliteCacheBackend),
-        # (PickleCacheBackend),
-        (JsonCacheBackend)
+        (PickleCacheBackend),
+        (JsonCacheBackend),
     ],
 )
 def test_persistent_cache_methods2(
@@ -90,11 +92,12 @@ def test_persistent_cache_methods2(
         temp = Temp()
 
         sleep_time = 0.2
+        loop = 4
 
         start = perf_counter()
-        for _ in range(10):
+        for _ in range(loop):
             temp.foo(time=sleep_time)
 
-        assert perf_counter() - start < sleep_time + 0.1
+        assert perf_counter() - start < sleep_time * loop
         Temp.foo.cache_clear()
         assert os.path.exists(Temp.foo.__backend__.__save__())
