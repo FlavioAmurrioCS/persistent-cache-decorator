@@ -8,7 +8,7 @@ from typing import Sequence
 from persistent_cache.decorators import sqlite_cache
 
 
-def run(cmd: tuple[str, ...] | list[str], cwd: str | None = None) -> str:
+def run_cli_helper(cmd: tuple[str, ...] | list[str], cwd: str | None = None) -> str:
     try:
         result = subprocess.run(
             args=cmd,
@@ -30,7 +30,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("cmd", nargs="+", help="Command to run")
     args = parser.parse_args(argv)
 
-    cached_func = sqlite_cache(minutes=args.minutes)(run)
+    cached_func = sqlite_cache(minutes=args.minutes)(run_cli_helper)
     result = cached_func(cmd=args.cmd, cwd=os.getcwd() if args.include_dir else None)
     print(result)
     return 0

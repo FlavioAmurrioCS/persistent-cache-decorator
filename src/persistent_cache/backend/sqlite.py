@@ -9,6 +9,7 @@ from typing import Callable
 from typing import Tuple
 
 from persistent_cache.backend import AbstractCacheBackend
+from persistent_cache.backend import get_function_identifier
 
 
 class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
@@ -93,7 +94,7 @@ class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
     ) -> tuple[str, tuple[bytes, bytes]]:
         pickled_args = pickle.dumps(args)
         pickled_kwargs = pickle.dumps(kwargs)
-        return (func.__qualname__, (pickled_args, pickled_kwargs))
+        return (get_function_identifier(func), (pickled_args, pickled_kwargs))
 
     def get(
         self, *, key: tuple[str, tuple[bytes, bytes]]
@@ -153,6 +154,6 @@ class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
             DELETE FROM cache
             WHERE function = ?
             """,
-            (func.__qualname__,),
+            (get_function_identifier(func),),
         )
         self.connection.commit()
