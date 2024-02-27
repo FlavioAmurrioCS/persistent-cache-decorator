@@ -14,3 +14,5 @@ jobs:
       id-token: write
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+    with:
+      zipapp-entrypoint: "dev-cache"

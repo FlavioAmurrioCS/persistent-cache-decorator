@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import inspect
 import os
 from typing import Any
 from typing import Callable
@@ -13,6 +14,11 @@ from typing_extensions import TypeVar
 _P = ParamSpec("_P")
 _KEY_T = TypeVar("_KEY_T")
 _STORE_T = TypeVar("_STORE_T")
+
+
+def get_function_identifier(func: Callable[_P, Any]) -> str:
+    module = inspect.getmodule(func)
+    return f"{module.__name__ if module else ''}.{func.__qualname__}"
 
 
 class CacheBackend(Protocol):
@@ -65,7 +71,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> tuple[str, _KEY_T]:
-        return func.__qualname__, f"args: {args}, kwargs: {kwargs}"  # type: ignore
+        return get_function_identifier(func), f"args: {args}, kwargs: {kwargs}"  # type: ignore
 
     def get(self, *, key: tuple[str, _KEY_T]) -> tuple[datetime.datetime, _STORE_T] | None:
         ...

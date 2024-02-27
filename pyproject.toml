@@ -28,6 +28,9 @@ dependencies = [
   "typing-extensions",
 ]
 
+[project.scripts]
+dev-cache = "persistent_cache.cli:main"
+
 [project.urls]
 Documentation = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator#readme"
 Issues = "https://github.com/FlavioAmurrioCS/persistent-cache-decorator/issues"
