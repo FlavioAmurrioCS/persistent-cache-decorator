@@ -9,6 +9,7 @@ from typing import Any
 from typing import Callable
 
 from persistent_cache.backend import AbstractCacheBackend
+from persistent_cache.backend import get_function_identifier
 
 
 class JsonCacheBackend(AbstractCacheBackend[str, Any]):
@@ -63,6 +64,17 @@ class JsonCacheBackend(AbstractCacheBackend[str, Any]):
         with open(self.file_path, "w") as f:
             json.dump(self.data, f)
         return self.file_path
+
+    def hash_key(
+        self, *, func: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]
+    ) -> tuple[str, str]:
+        return get_function_identifier(func), f"args: {args}, kwargs: {kwargs}"
+
+    def encode(self, *, data: Any) -> Any:  # noqa: ANN401
+        return data
+
+    def decode(self, *, data: Any) -> Any:  # noqa: ANN401
+        return data
 
     def get(self, *, key: tuple[str, str]) -> tuple[datetime.datetime, Any] | None:
         funcname, args_key = key

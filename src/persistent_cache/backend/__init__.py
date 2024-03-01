@@ -70,23 +70,19 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
         func: Callable[_P, Any],
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
-    ) -> tuple[str, _KEY_T]:
-        return get_function_identifier(func), f"args: {args}, kwargs: {kwargs}"  # type: ignore
+    ) -> tuple[str, _KEY_T]: ...
 
-    def get(self, *, key: tuple[str, _KEY_T]) -> tuple[datetime.datetime, _STORE_T] | None:
-        ...
-
-    def delete(self, *, key: tuple[str, _KEY_T]) -> None:
-        ...
-
-    def put(self, *, key: tuple[str, _KEY_T], data: _STORE_T) -> None:
+    def encode(self, *, data: Any) -> _STORE_T:  # noqa: ANN401
         ...
 
     def decode(self, *, data: _STORE_T) -> Any:  # noqa: ANN401
-        return data
+        ...
 
-    def encode(self, *, data: Any) -> _STORE_T:  # noqa: ANN401
-        return data
+    def get(self, *, key: tuple[str, _KEY_T]) -> tuple[datetime.datetime, _STORE_T] | None: ...
+
+    def delete(self, *, key: tuple[str, _KEY_T]) -> None: ...
+
+    def put(self, *, key: tuple[str, _KEY_T], data: _STORE_T) -> None: ...
 
     def get_cache_or_call(
         self,

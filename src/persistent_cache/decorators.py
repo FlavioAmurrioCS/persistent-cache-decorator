@@ -51,8 +51,7 @@ if TYPE_CHECKING:
     _R_co = TypeVar("_R_co", covariant=True)
 
     class _PersistentCacheCallable(Protocol[_R_co]):
-        def __call__(self, **duration: Unpack[_CacheDuration]) -> _R_co:
-            ...
+        def __call__(self, **duration: Unpack[_CacheDuration]) -> _R_co: ...
 
 
 DEFAULT_CACHE_LOCATION = Path("~/.cache/persistent_cache").expanduser()
@@ -241,12 +240,10 @@ Instance = TypeVar("Instance")
 
 class _PersistentCachedProperty(_PersistentCache[Concatenate[Instance, _P], _R, _CacheBackendT]):
     @overload
-    def __get__(self, instance: None, owner: type[Instance]) -> Self:
-        ...
+    def __get__(self, instance: None, owner: type[Instance]) -> Self: ...
 
     @overload
-    def __get__(self, instance: Instance, owner: type[Instance]) -> Callable[_P, _R]:
-        ...
+    def __get__(self, instance: Instance, owner: type[Instance]) -> Callable[_P, _R]: ...
 
     def __get__(self, instance: Instance | None, owner: type[Instance]) -> Self | Callable[_P, _R]:
         if instance is None:

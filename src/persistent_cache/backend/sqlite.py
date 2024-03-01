@@ -96,6 +96,12 @@ class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
         pickled_kwargs = pickle.dumps(kwargs)
         return (get_function_identifier(func), (pickled_args, pickled_kwargs))
 
+    def encode(self, *, data: Any) -> Any:  # noqa: ANN401
+        return pickle.dumps(data)
+
+    def decode(self, *, data: Any) -> Any:  # noqa: ANN401
+        return pickle.loads(data)  # noqa: S301
+
     def get(
         self, *, key: tuple[str, tuple[bytes, bytes]]
     ) -> tuple[datetime.datetime, bytes] | None:
