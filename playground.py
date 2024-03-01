@@ -113,11 +113,9 @@ class RedisCacheBackend(CacheBackend):
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
         lifespan: datetime.timedelta,
-    ) -> _R:
-        ...
+    ) -> _R: ...
 
-    def del_func_cache(self, *, func: Callable[..., Any]) -> None:
-        ...
+    def del_func_cache(self, *, func: Callable[..., Any]) -> None: ...
 
 
 # Singleton Instance

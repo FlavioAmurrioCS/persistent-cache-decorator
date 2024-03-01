@@ -4,13 +4,30 @@ import os
 import tempfile
 from time import perf_counter
 from time import sleep
+from typing import NamedTuple
+from unittest.mock import patch
 
-import pytest  # pyright: ignore[reportMissingImports]
+import pytest
 from persistent_cache.backend.json import JsonCacheBackend
 from persistent_cache.backend.pickle import PickleCacheBackend
 from persistent_cache.backend.sqlite import SqliteCacheBackend
 from persistent_cache.decorators import persistent_cache
 from persistent_cache.decorators import persistent_cached_property
+
+
+class Person(NamedTuple):
+    name: str
+    b: int
+
+
+def _foo(*, time: float) -> Person:
+    sleep(time)
+    return Person("John", int(time))
+
+
+class Temp:
+    def foo(self, *, time: float) -> Person:
+        return _foo(time=time)
 
 
 @pytest.mark.parametrize(
@@ -20,22 +37,25 @@ def test_persistent_cache(
     cache_backend: type[SqliteCacheBackend | PickleCacheBackend | JsonCacheBackend],
 ) -> None:
     with tempfile.NamedTemporaryFile() as f:
-
-        @persistent_cache(backend=cache_backend(f.name), seconds=4)
-        def foo(time: float) -> float:
-            sleep(time)
-            return time
+        backend = cache_backend(f.name)
+        foo = persistent_cache(backend=backend, seconds=4)(_foo)
 
         sleep_time = 0.2
         loop = 4
 
         start = perf_counter()
         for _ in range(loop):
-            foo(sleep_time)
+            result = foo(time=sleep_time)
 
         assert perf_counter() - start < sleep_time * loop
+        assert os.path.exists(backend.__save__())
+        if isinstance(backend, (JsonCacheBackend, PickleCacheBackend)):
+            del backend.data
+        if not isinstance(backend, JsonCacheBackend):
+            result = foo(time=sleep_time)
+            assert result == Person("John", int(sleep_time))
         foo.cache_clear()
-        assert os.path.exists(foo.__backend__.__save__())
+        assert os.path.exists(backend.__save__())
 
 
 @pytest.mark.parametrize(
@@ -45,35 +65,32 @@ def test_persistent_cache_methods(
     cache_backend: type[SqliteCacheBackend | PickleCacheBackend | JsonCacheBackend],
 ) -> None:
     with tempfile.NamedTemporaryFile() as f:
-
-        class Temp:
-            def __init__(self) -> None:
-                self.foo = persistent_cache(backend=cache_backend(f.name), seconds=4)(
-                    self._uncached_foo
-                )
-
-            def _uncached_foo(self, time: float) -> float:
-                sleep(time)
-                return time
-
+        backend = cache_backend(f.name)
         temp = Temp()
+        temp.foo = persistent_cache(backend=backend, seconds=4)(temp.foo)  # type:ignore[method-assign]
 
         sleep_time = 0.2
         loop = 4
 
         start = perf_counter()
         for _ in range(loop):
-            temp.foo(sleep_time)
+            result = temp.foo(time=sleep_time)
 
         assert perf_counter() - start < sleep_time * loop
+        assert os.path.exists(backend.__save__())
+        if isinstance(backend, (JsonCacheBackend, PickleCacheBackend)):
+            del backend.data
+        if not isinstance(backend, JsonCacheBackend):
+            result = temp.foo(time=sleep_time)
+            assert result == Person("John", int(sleep_time))
         temp.foo.cache_clear()
-        assert os.path.exists(temp.foo.__backend__.__save__())
+        assert os.path.exists(backend.__save__())
 
 
 @pytest.mark.parametrize(
     "cache_backend",
     [
-        # (SqliteCacheBackend),
+        (SqliteCacheBackend),
         (PickleCacheBackend),
         (JsonCacheBackend),
     ],
@@ -82,22 +99,25 @@ def test_persistent_cache_methods2(
     cache_backend: type[SqliteCacheBackend | PickleCacheBackend | JsonCacheBackend],
 ) -> None:
     with tempfile.NamedTemporaryFile() as f:
+        backend = cache_backend(f.name)
+        with patch.object(
+            Temp, "foo", persistent_cached_property(backend=backend, seconds=4)(Temp.foo)
+        ):
+            temp = Temp()
 
-        class Temp:
-            @persistent_cached_property(backend=cache_backend(f.name), seconds=4)
-            def foo(self, *, time: float) -> float:
-                sleep(time)
-                return time
+            sleep_time = 0.2
+            loop = 4
 
-        temp = Temp()
+            start = perf_counter()
+            for _ in range(loop):
+                result = temp.foo(time=sleep_time)
 
-        sleep_time = 0.2
-        loop = 4
-
-        start = perf_counter()
-        for _ in range(loop):
-            temp.foo(time=sleep_time)
-
-        assert perf_counter() - start < sleep_time * loop
-        Temp.foo.cache_clear()
-        assert os.path.exists(Temp.foo.__backend__.__save__())
+            assert perf_counter() - start < sleep_time * loop
+            assert os.path.exists(backend.__save__())
+            if isinstance(backend, (JsonCacheBackend, PickleCacheBackend)):
+                del backend.data
+            if not isinstance(backend, JsonCacheBackend):
+                result = temp.foo(time=sleep_time)
+                assert result == Person("John", int(sleep_time))
+            Temp.foo.cache_clear()  # type:ignore[attr-defined]
+            assert os.path.exists(backend.__save__())
