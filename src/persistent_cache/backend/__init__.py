@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import inspect
+import logging
 import os
 from typing import Any
 from typing import Callable
@@ -14,6 +15,14 @@ from typing_extensions import TypeVar
 _P = ParamSpec("_P")
 _KEY_T = TypeVar("_KEY_T")
 _STORE_T = TypeVar("_STORE_T")
+
+
+class CacheBackendEncodeError(Exception):
+    """Raised when the cache backend fails to encode data."""
+
+
+class CacheBackendDecodeError(Exception):
+    """Raised when the cache backend fails to decode data."""
 
 
 def get_function_identifier(func: Callable[_P, Any]) -> str:
@@ -110,7 +119,12 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
         if os.environ.get("NO_CACHE"):
             return func(*args, **kwargs)
 
-        key = self.hash_key(func=func, args=args, kwargs=kwargs)
+        try:
+            key = self.hash_key(func=func, args=args, kwargs=kwargs)
+        except:  # noqa: E722
+            # If we can't create a cache key, we should just call the function.
+            logging.warning("Failed to hash cache key for function: %s", func)
+            return func(*args, **kwargs)
         result_pair = self.get(key=key)
 
         if result_pair is not None:
@@ -118,10 +132,19 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
             if not os.environ.get("RE_CACHE") and (
                 datetime.datetime.now() < (cached_time + lifespan)  # noqa: DTZ005
             ):
-                return self.decode(data=result)
+                try:
+                    return self.decode(data=result)
+                except CacheBackendDecodeError as e:
+                    logging.warning("Failed to decode cache data: %s", e)
+                    # If decoding fails we will treat this as a cache miss.
+                    # This might happens if underlying class definition of the data changes.
             self.delete(key=key)
         result = func(*args, **kwargs)
-        self.put(key=key, data=self.encode(data=result))
+        try:
+            self.put(key=key, data=self.encode(data=result))
+        except CacheBackendEncodeError as e:
+            logging.warning("Failed to encode cache data: %s", e)
+        # If encoding fails, we should still return the result.
         return result
 
     def del_func_cache(self, *, func: Callable[..., Any]) -> None:
