@@ -9,6 +9,8 @@ from typing import Callable
 from typing import Tuple
 
 from persistent_cache.backend import AbstractCacheBackend
+from persistent_cache.backend import CacheBackendDecodeError
+from persistent_cache.backend import CacheBackendEncodeError
 from persistent_cache.backend import get_function_identifier
 
 
@@ -97,10 +99,16 @@ class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
         return (get_function_identifier(func), (pickled_args, pickled_kwargs))
 
     def encode(self, *, data: Any) -> Any:  # noqa: ANN401
-        return pickle.dumps(data)
+        try:
+            return pickle.dumps(data)
+        except (pickle.PickleError, TypeError) as e:
+            raise CacheBackendEncodeError(e) from None
 
     def decode(self, *, data: Any) -> Any:  # noqa: ANN401
-        return pickle.loads(data)  # noqa: S301
+        try:
+            return pickle.loads(data)  # noqa: S301
+        except (pickle.PickleError, TypeError) as e:
+            raise CacheBackendDecodeError(e) from None
 
     def get(
         self, *, key: tuple[str, tuple[bytes, bytes]]
