@@ -44,7 +44,6 @@ version-file = "src/persistent_cache/_version.py"
 
 [tool.hatch.envs.default]
 dependencies = [
-  "codeflash",
   "coverage[toml]>=6.5",
   "pytest",
   "setuptools-scm",
@@ -167,8 +166,7 @@ legacy_tox_ini = """
 """
 
 [tool.codeflash]
-# All paths are relative to this pyproject.toml's directory.
-module-root = "src"
+module-root = "src/persistent_cache"
 tests-root = "tests"
 test-framework = "pytest"
 ignore-paths = []
