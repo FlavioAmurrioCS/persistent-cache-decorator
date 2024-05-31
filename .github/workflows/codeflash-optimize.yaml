@@ -40,7 +40,7 @@ jobs:
         if: steps.bot_check.outputs.skip_remaining_steps == 'no'
         run: |
           python -m pip install --upgrade pip hatch
-          hatch env create default
+          hatch run pip install codeflash
       - name: Run Codeflash to optimize code
         if: steps.bot_check.outputs.skip_remaining_steps == 'no'
         id: optimize_code
