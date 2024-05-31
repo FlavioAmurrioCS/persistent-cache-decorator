@@ -44,6 +44,7 @@ version-file = "src/persistent_cache/_version.py"
 
 [tool.hatch.envs.default]
 dependencies = [
+  "codeflash",
   "coverage[toml]>=6.5",
   "pytest",
   "setuptools-scm",
@@ -164,3 +165,11 @@ legacy_tox_ini = """
         ; mypy --ignore-missing-imports --scripts-are-modules comma
         pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning {posargs:tests}
 """
+
+[tool.codeflash]
+# All paths are relative to this pyproject.toml's directory.
+module-root = "src"
+tests-root = "tests"
+test-framework = "pytest"
+ignore-paths = []
+disable-telemtry = true
