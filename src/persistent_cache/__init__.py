@@ -2,7 +2,7 @@ from __future__ import annotations
 
 try:
     from persistent_cache._version import (  # type: ignore[no-redef,unused-ignore]
-        __version__,  #
+        __version__,
     )
 except ModuleNotFoundError:
     try:
