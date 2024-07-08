@@ -47,6 +47,7 @@ dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
   "setuptools-scm",
+  "pytest-asyncio",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"

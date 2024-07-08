@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import functools
+import inspect
 import os
 from pathlib import Path
 from typing import Callable
@@ -130,8 +131,18 @@ class _PersistentCache(Generic[_P, _R, _CacheBackendT]):
         """  # noqa: E501
         if "NO_CACHE" in os.environ:
             return self.__wrapped__(*args, **kwargs)
+
         os.makedirs(DEFAULT_CACHE_LOCATION, exist_ok=True)
-        return self.__backend__.get_cache_or_call(
+
+        if not inspect.iscoroutinefunction(self.__wrapped__):
+            return self.__backend__.get_cache_or_call(
+                func=self.__wrapped__,
+                args=args,
+                kwargs=kwargs,
+                lifespan=self.__duration__,
+            )
+
+        return self.__backend__.get_cache_or_call_async(  # type: ignore[return-value]
             func=self.__wrapped__,
             args=args,
             kwargs=kwargs,

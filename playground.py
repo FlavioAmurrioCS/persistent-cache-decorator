@@ -117,6 +117,15 @@ class RedisCacheBackend(CacheBackend):
 
     def del_func_cache(self, *, func: Callable[..., Any]) -> None: ...
 
+    async def get_cache_or_call_async(  # type: ignore[empty-body]
+        self,
+        *,
+        func: Callable[..., _R],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+        lifespan: datetime.timedelta,
+    ) -> _R: ...
+
 
 # Singleton Instance
 REDIS_CACHE_BACKEND = RedisCacheBackend()
