@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 import tempfile
 from time import perf_counter
@@ -22,6 +23,11 @@ class Person(NamedTuple):
 
 def _foo(*, time: float) -> Person:
     sleep(time)
+    return Person("John", int(time))
+
+
+async def _foo_async(*, time: float) -> Person:
+    await asyncio.sleep(time)
     return Person("John", int(time))
 
 
@@ -121,3 +127,35 @@ def test_persistent_cache_methods2(
                 assert result == Person("John", int(sleep_time))
             Temp.foo.cache_clear()  # type:ignore[attr-defined]
             assert os.path.exists(backend.__save__())
+
+
+pytest_plugins = ("pytest_asyncio",)
+
+
+@pytest.mark.asyncio()
+@pytest.mark.parametrize(
+    "cache_backend", [(SqliteCacheBackend), (PickleCacheBackend), (JsonCacheBackend)]
+)
+async def test_persistent_cache_async(
+    cache_backend: type[SqliteCacheBackend | PickleCacheBackend | JsonCacheBackend],
+) -> None:
+    with tempfile.NamedTemporaryFile() as f:
+        backend = cache_backend(f.name)
+        foo = persistent_cache(backend=backend, seconds=4)(_foo_async)
+
+        sleep_time = 0.2
+        loop = 4
+
+        start = perf_counter()
+        for _ in range(loop):
+            result = await foo(time=sleep_time)
+
+        assert perf_counter() - start < sleep_time * loop
+        assert os.path.exists(backend.__save__())
+        if isinstance(backend, (JsonCacheBackend, PickleCacheBackend)):
+            del backend.data
+        if not isinstance(backend, JsonCacheBackend):
+            result = await foo(time=sleep_time)
+            assert result == Person("John", int(sleep_time))
+        foo.cache_clear()
+        assert os.path.exists(backend.__save__())
