@@ -47,8 +47,17 @@ dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
   "setuptools-scm",
-  "pytest-asyncio",
 ]
+
+[tool.hatch.envs.hatch-test]
+extra-dependencies = [
+  "requests",
+  "httpx",
+  "urllib3<=2.0.0",
+  "pytest-asyncio",
+
+]
+
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
@@ -152,19 +161,6 @@ docstring-code-line-length = 100
   "E501",   # line-too-long
   "INP001", # implicit-namespace-package
 ]
-
-[tool.tox]
-legacy_tox_ini = """
-    [tox]
-    skip_missing_interpreters = True
-    envlist = py38, py39, py310, py311, py312
-
-    [testenv]
-    deps = pytest
-    commands =
-        ; mypy --ignore-missing-imports --scripts-are-modules comma
-        pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning {posargs:tests}
-"""
 
 [tool.codeflash]
 module-root = "src/persistent_cache"
