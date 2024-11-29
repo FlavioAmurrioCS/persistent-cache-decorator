@@ -129,8 +129,6 @@ select = [
   "ALL",
 ]
 ignore = [
-  "ANN101", # missing-type-self
-  "ANN102", # missing-type-cls
   "COM812", # missing-trailing-comma
   "D100",   # undocumented-public-module
   "D101",   # undocumented-public-class

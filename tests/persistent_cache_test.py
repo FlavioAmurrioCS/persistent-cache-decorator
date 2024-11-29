@@ -132,7 +132,7 @@ def test_persistent_cache_methods2(
 pytest_plugins = ("pytest_asyncio",)
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "cache_backend", [(SqliteCacheBackend), (PickleCacheBackend), (JsonCacheBackend)]
 )
