@@ -6,12 +6,12 @@ repos:
     hooks:
       - id: taplo
   - repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.13.0
+    rev: v3.14.0
     hooks:
       - id: reorder-python-imports
         args: [--py37-plus, --add-import, "from __future__ import annotations"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.1
+    rev: v0.8.1
     hooks:
       - id: ruff
         types_or: [python, pyi, jupyter]
@@ -19,7 +19,7 @@ repos:
       - id: ruff-format
         types_or: [python, pyi, jupyter]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -28,10 +28,9 @@ repos:
       - id: name-tests-test
       - id: requirements-txt-fixer
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.1
+    rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-all]
   - repo: local
     hooks:
       - id: hatch-test
