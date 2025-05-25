@@ -174,3 +174,5 @@ cython_debug/
 .pypirc
 _version.py
 __TEMP_LAMBDA_DEV_SERVER_HELPER_DO_NOT_CHECK_INTO_GIT__*
+temp/
+.DS_Store
