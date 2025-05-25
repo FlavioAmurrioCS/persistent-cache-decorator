@@ -9,6 +9,7 @@ from typing import NamedTuple
 from unittest.mock import patch
 
 import pytest
+
 from persistent_cache.backend.json import JsonCacheBackend
 from persistent_cache.backend.pickle import PickleCacheBackend
 from persistent_cache.backend.sqlite import SqliteCacheBackend

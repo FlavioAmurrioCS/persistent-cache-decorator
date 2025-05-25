@@ -1,19 +1,15 @@
 ci:
-  skip: [hatch-test, taplo]
+  skip: [hatch-test, taplo-lint]
 repos:
   - repo: https://github.com/ComPWA/mirrors-taplo
-    rev: "v0.8.1"
+    rev: "v0.9.3"
     hooks:
-      - id: taplo
-  - repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.14.0
-    hooks:
-      - id: reorder-python-imports
-        args: [--py37-plus, --add-import, "from __future__ import annotations"]
+      - id: taplo-format
+      - id: taplo-lint
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.11.11
     hooks:
-      - id: ruff
+      - id: ruff-check
         types_or: [python, pyi, jupyter]
         args: [--fix]
       - id: ruff-format
@@ -28,7 +24,7 @@ repos:
       - id: name-tests-test
       - id: requirements-txt-fixer
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.15.0
     hooks:
       - id: mypy
   - repo: local

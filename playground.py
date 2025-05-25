@@ -46,6 +46,7 @@ long_func(5)
 # region: Cached Property
 
 from typing import NamedTuple  # noqa: E402
+
 from persistent_cache.decorators import json_cached_property  # noqa: E402
 
 
@@ -94,13 +95,16 @@ Person.online_information.cache_clear()
 
 
 # region: Creating a custom cache backend
-from typing_extensions import Any  # noqa: E402
-from typing import Callable  # noqa: E402
-from persistent_cache.decorators import cache_decorator_factory  # noqa: E402
 from typing import TYPE_CHECKING  # noqa: E402
+from typing import Callable  # noqa: E402
+
+from typing_extensions import Any  # noqa: E402
+
+from persistent_cache.decorators import cache_decorator_factory  # noqa: E402
 
 if TYPE_CHECKING:
     import datetime
+
     from persistent_cache.decorators import _R
 
 

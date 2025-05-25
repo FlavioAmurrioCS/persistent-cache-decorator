@@ -12,7 +12,6 @@ from typing_extensions import ParamSpec
 from typing_extensions import Protocol
 from typing_extensions import TypeVar
 
-
 _P = ParamSpec("_P")
 _KEY_T = TypeVar("_KEY_T")
 _STORE_T = TypeVar("_STORE_T")
