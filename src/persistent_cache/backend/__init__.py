@@ -12,6 +12,8 @@ from typing_extensions import ParamSpec
 from typing_extensions import Protocol
 from typing_extensions import TypeVar
 
+logger = logging.getLogger(__name__)
+
 _P = ParamSpec("_P")
 _KEY_T = TypeVar("_KEY_T")
 _STORE_T = TypeVar("_STORE_T")
@@ -148,7 +150,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
             key = self.hash_key(func=func, args=args, kwargs=kwargs)
         except:  # noqa: E722
             # If we can't create a cache key, we should just call the function.
-            logging.warning("Failed to hash cache key for function: %s", func)
+            logger.warning("Failed to hash cache key for function: %s", func)
             return func(*args, **kwargs)
         result_pair = self.get(key=key)
 
@@ -160,7 +162,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
                 try:
                     return self.decode(data=result)
                 except CacheBackendDecodeError as e:
-                    logging.warning("Failed to decode cache data: %s", e)
+                    logger.warning("Failed to decode cache data: %s", e)
                     # If decoding fails we will treat this as a cache miss.
                     # This might happens if underlying class definition of the data changes.
             self.delete(key=key)
@@ -168,7 +170,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
         try:
             self.put(key=key, data=self.encode(data=result))
         except CacheBackendEncodeError as e:
-            logging.warning("Failed to encode cache data: %s", e)
+            logger.warning("Failed to encode cache data: %s", e)
         # If encoding fails, we should still return the result.
         return result
 
@@ -202,7 +204,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
             key = self.hash_key(func=func, args=args, kwargs=kwargs)
         except:  # noqa: E722
             # If we can't create a cache key, we should just call the function.
-            logging.warning("Failed to hash cache key for function: %s", func)
+            logger.warning("Failed to hash cache key for function: %s", func)
             return await func(*args, **kwargs)
         result_pair = self.get(key=key)
 
@@ -214,7 +216,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
                 try:
                     return self.decode(data=result)
                 except CacheBackendDecodeError as e:
-                    logging.warning("Failed to decode cache data: %s", e)
+                    logger.warning("Failed to decode cache data: %s", e)
                     # If decoding fails we will treat this as a cache miss.
                     # This might happens if underlying class definition of the data changes.
             self.delete(key=key)
@@ -222,7 +224,7 @@ class AbstractCacheBackend(CacheBackend, Protocol[_KEY_T, _STORE_T]):
         try:
             self.put(key=key, data=self.encode(data=result))
         except CacheBackendEncodeError as e:
-            logging.warning("Failed to encode cache data: %s", e)
+            logger.warning("Failed to encode cache data: %s", e)
         # If encoding fails, we should still return the result.
         return result
 

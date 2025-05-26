@@ -259,7 +259,7 @@ class _PersistentCachedProperty(_PersistentCache[Concatenate[Instance, _P], _R, 
     def __get__(self, instance: Instance | None, owner: type[Instance]) -> Self | Callable[_P, _R]:
         if instance is None:
             return self
-        return functools.partial(self.__call__, instance)  # type:ignore[call-arg]
+        return functools.partial(self.__call__, instance)
 
 
 def persistent_cached_property(

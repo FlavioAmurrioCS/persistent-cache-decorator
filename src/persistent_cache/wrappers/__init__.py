@@ -34,7 +34,7 @@ class _LRUCache(Generic[_P, _R]):
         return self.__wrapped_lru_func__.cache_clear()
 
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R:
-        return self.__wrapped_lru_func__(*args, **kwargs)  # type: ignore
+        return self.__wrapped_lru_func__(*args, **kwargs)  # type: ignore[arg-type]
 
     def no_cache_call(self, *args: _P.args, **kwargs: _P.kwargs) -> _R:
         """

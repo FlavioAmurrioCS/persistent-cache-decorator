@@ -71,6 +71,9 @@ extra-dependencies = [
 
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/persistent_cache tests}"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/persistent_cache"]
 ###############################################################################
 # endregion: hatch
 ###############################################################################
