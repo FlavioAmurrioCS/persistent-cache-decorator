@@ -5,15 +5,11 @@ import functools
 import inspect
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Generic
 from typing import overload
-from typing import TYPE_CHECKING
 
-from persistent_cache.backend import CacheBackend
-from persistent_cache.backend.json import JsonCacheBackend
-from persistent_cache.backend.pickle import PickleCacheBackend
-from persistent_cache.backend.sqlite import SqliteCacheBackend
 from typing_extensions import Concatenate
 from typing_extensions import ParamSpec
 from typing_extensions import Protocol
@@ -22,6 +18,10 @@ from typing_extensions import TypedDict
 from typing_extensions import TypeVar
 from typing_extensions import Unpack
 
+from persistent_cache.backend import CacheBackend
+from persistent_cache.backend.json import JsonCacheBackend
+from persistent_cache.backend.pickle import PickleCacheBackend
+from persistent_cache.backend.sqlite import SqliteCacheBackend
 
 if TYPE_CHECKING:
 
@@ -193,7 +193,7 @@ def persistent_cache(
     return inner
 
 
-def cache_decorator_factory(  # noqa: D417
+def cache_decorator_factory(
     *,
     backend: _CacheBackendT,
     **default_duration: Unpack[_CacheDuration],
@@ -259,7 +259,7 @@ class _PersistentCachedProperty(_PersistentCache[Concatenate[Instance, _P], _R, 
     def __get__(self, instance: Instance | None, owner: type[Instance]) -> Self | Callable[_P, _R]:
         if instance is None:
             return self
-        return functools.partial(self.__call__, instance)  # type:ignore[call-arg]
+        return functools.partial(self.__call__, instance)
 
 
 def persistent_cached_property(
