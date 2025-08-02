@@ -7,7 +7,7 @@ name = "persistent-cache-decorator"
 dynamic = ["version"]
 description = "A decorator for caching functions that provides persistence to JSON, pickle, or SQLite"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = "MIT"
 keywords = ["cache", "decorator", "persistence", "JSON", "pickle", "SQLite"]
 authors = [
@@ -16,7 +16,6 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -31,14 +30,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-types = [
-]
 tests = [
-  "persistent-cache-decorator[types]",
+  "pytest",
+  "tomli ; python_version < '3.11'",
   "requests",
   "httpx",
-  "urllib3<=2.0.0",
   "pytest-asyncio",
+]
+types = [
+  "persistent-cache-decorator[tests]",
+  "mypy",
+  "pyrefly",
+  "pyright[nodejs]",
+  "ty",
 ]
 
 [project.urls]
@@ -58,6 +62,11 @@ source = "vcs"
 [tool.hatch.build.hooks.vcs]
 version-file = "src/persistent_cache/_version.py"
 
+[tool.hatch.build.targets.wheel]
+packages = [
+  "src/persistent_cache",
+]
+
 [tool.hatch.envs.hatch-test]
 extra-dependencies = [
   "persistent-cache-decorator[tests]",
@@ -72,8 +81,15 @@ extra-dependencies = [
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/persistent_cache tests}"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/persistent_cache"]
+[[tool.hatch.envs.hatch-test.matrix]]
+python = [
+  "3.9",
+  "3.10",
+  "3.11",
+  "3.12",
+  "3.13",
+  "3.14",
+]
 ###############################################################################
 # endregion: hatch
 ###############################################################################
@@ -115,7 +131,7 @@ exclude_lines = [
 # region: pyright
 ###############################################################################
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 ###############################################################################
 # endregion: pyright
 ###############################################################################
@@ -124,7 +140,7 @@ pythonVersion = "3.8"
 # region: mypy
 ###############################################################################
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true
@@ -153,13 +169,14 @@ select = [
   "ALL",
 ]
 ignore = [
-  "COM812", # missing-trailing-comma
-  "D",      # pydocstyle
-  "ERA001", # commented-out-code
-  "EXE003", # shebang-missing-python
-  "ISC001", # single-line-implicit-string-concatenation
-  "PTH",    # flake8-use-pathlib
-  "T20",    # flake8-print
+  "COM812",  # missing-trailing-comma
+  "D",       # pydocstyle
+  "ERA001",  # commented-out-code
+  "EXE003",  # shebang-missing-python
+  "ISC001",  # single-line-implicit-string-concatenation
+  "PTH",     # flake8-use-pathlib
+  "T20",     # flake8-print
+  "PLC0415", # import-outside-top-level
 ]
 
 [tool.ruff.format]

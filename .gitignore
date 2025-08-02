@@ -177,3 +177,6 @@ __TEMP_LAMBDA_DEV_SERVER_HELPER_DO_NOT_CHECK_INTO_GIT__*
 temp/
 .DS_Store
 *.dist-info/
+
+uv.lock
+requirements.txt

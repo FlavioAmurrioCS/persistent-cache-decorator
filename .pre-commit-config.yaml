@@ -1,13 +1,25 @@
 ci:
-  skip: [hatch-test, taplo-lint]
+  skip:
+    - uv-lock
+    - taplo-lint
+    - uv-mypy
+    - uv-pyrefly
+    - uv-ty
+    - uv-pyright
+    - uv-test
 repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.8.4
+    hooks:
+      - id: uv-lock
+      - id: uv-export
   - repo: https://github.com/ComPWA/mirrors-taplo
     rev: "v0.9.3"
     hooks:
       - id: taplo-format
       - id: taplo-lint
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.11
+    rev: v0.12.7
     hooks:
       - id: ruff-check
         types_or: [python, pyi, jupyter]
@@ -24,15 +36,46 @@ repos:
       - id: name-tests-test
       - id: requirements-txt-fixer
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.17.1
     hooks:
       - id: mypy
   - repo: local
     hooks:
-      - id: hatch-test
-        name: hatch-test
-        entry: env HATCH_ENV_TYPE_VIRTUAL_PATH= hatch test --parallel --all
+      - id: uv-mypy
+        name: uv-mypy
+        entry: env VIRTUAL_ENV= uv run --extra types mypy
+        args: [--ignore-missing-imports, --scripts-are-modules]
         language: python
-        additional_dependencies: [hatch>=1.12.0]
+        'types_or': [python, pyi]
+        require_serial: true
+        additional_dependencies: [uv]
+      - id: uv-pyrefly
+        name: uv-pyrefly
+        entry: env VIRTUAL_ENV= uv run --extra types pyrefly check
+        language: python
+        'types_or': [python, pyi]
+        require_serial: true
+        additional_dependencies: [uv]
+      - id: uv-ty
+        name: uv-ty
+        entry: env VIRTUAL_ENV= uv run --extra types ty check
+        language: python
+        'types_or': [python, pyi]
+        require_serial: true
+        additional_dependencies: [uv]
+        stages: [manual]
+      - id: uv-pyright
+        name: uv-pyright
+        entry: env VIRTUAL_ENV= uv run --extra types pyright
+        language: python
+        'types_or': [python, pyi]
+        require_serial: true
+        additional_dependencies: [uv]
+      - id: uv-test
+        name: uv-test
+        entry: env VIRTUAL_ENV= uv run --extra tests pytest
+        language: python
+        types: [python]
         pass_filenames: false
         always_run: true
+        additional_dependencies: [uv]
