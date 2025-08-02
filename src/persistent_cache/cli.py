@@ -3,9 +3,12 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from persistent_cache.decorators import sqlite_cache
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def run_cli_helper(cmd: tuple[str, ...] | list[str], cwd: str | None = None) -> str:

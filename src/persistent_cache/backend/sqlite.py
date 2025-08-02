@@ -6,7 +6,6 @@ import pickle
 import sqlite3
 from typing import Any
 from typing import Callable
-from typing import Tuple
 
 from persistent_cache.backend import AbstractCacheBackend
 from persistent_cache.backend import CacheBackendDecodeError
@@ -14,7 +13,7 @@ from persistent_cache.backend import CacheBackendEncodeError
 from persistent_cache.backend import get_function_identifier
 
 
-class SqliteCacheBackend(AbstractCacheBackend[Tuple[bytes, bytes], bytes]):
+class SqliteCacheBackend(AbstractCacheBackend[tuple[bytes, bytes], bytes]):
     """
     A cache backend implementation using SQLite as the storage.
 
