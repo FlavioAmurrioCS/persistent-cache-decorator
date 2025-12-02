@@ -4,11 +4,14 @@ import functools
 from functools import _CacheInfo
 from functools import _lru_cache_wrapper
 from functools import lru_cache as _lru_cache
-from typing import Callable
+from typing import TYPE_CHECKING
 from typing import Generic
 from typing import TypeVar
 
 from typing_extensions import ParamSpec
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _R = TypeVar("_R")
 _P = ParamSpec("_P")

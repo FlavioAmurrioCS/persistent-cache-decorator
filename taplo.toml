@@ -1,3 +1,4 @@
+#:schema https://www.schemastore.org/taplo.json
 [formatting]
 align_entries = false         # Align entries vertically. Entries that have table headers, comments, or blank lines between them are not aligned.	false
 align_comments = true         # Align consecutive comments after entries and items vertically. This applies to comments that are after entries or array items.	true

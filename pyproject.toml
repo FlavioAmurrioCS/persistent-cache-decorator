@@ -1,3 +1,4 @@
+#:schema https://www.schemastore.org/pyproject.json
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
@@ -7,7 +8,7 @@ name = "persistent-cache-decorator"
 dynamic = ["version"]
 description = "A decorator for caching functions that provides persistence to JSON, pickle, or SQLite"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 keywords = ["cache", "decorator", "persistence", "JSON", "pickle", "SQLite"]
 authors = [
@@ -16,7 +17,6 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -30,19 +30,39 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tests = [
+
+[dependency-groups]
+dev = [
+  { include-group = "test" },
+  { include-group = "types" },
+]
+test = [
   "pytest",
   "tomli ; python_version < '3.11'",
   "requests",
   "httpx",
   "pytest-asyncio",
 ]
+types_packages = [
+  { include-group = "test" },
+  "typing-extensions",
+]
 types = [
-  "persistent-cache-decorator[tests]",
+  { include-group = "types_packages" },
   "mypy",
+]
+types_other = [
+  { include-group = "types_packages" },
   "pyrefly",
   "pyright[nodejs]",
   "ty",
+]
+docs = [
+  "zensical",
+  "mkdocs-material",
+  "mkdocs-marimo",
+  "pymdown-extensions",
+  "click==8.2.1",
 ]
 
 [project.urls]
@@ -68,14 +88,13 @@ packages = [
 ]
 
 [tool.hatch.envs.hatch-test]
-extra-dependencies = [
-  "persistent-cache-decorator[tests]",
+dependency-groups = [
+  "test",
 ]
 
 [tool.hatch.envs.types]
-extra-dependencies = [
-  "mypy>=1.0.0",
-  "persistent-cache-decorator[types]",
+dependency-groups = [
+  "types",
 ]
 
 [tool.hatch.envs.types.scripts]
@@ -83,7 +102,6 @@ check = "mypy --install-types --non-interactive {args:src/persistent_cache tests
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = [
-  "3.9",
   "3.10",
   "3.11",
   "3.12",
@@ -131,7 +149,7 @@ exclude_lines = [
 # region: pyright
 ###############################################################################
 [tool.pyright]
-pythonVersion = "3.9"
+pythonVersion = "3.10"
 ###############################################################################
 # endregion: pyright
 ###############################################################################
@@ -140,7 +158,7 @@ pythonVersion = "3.9"
 # region: mypy
 ###############################################################################
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true

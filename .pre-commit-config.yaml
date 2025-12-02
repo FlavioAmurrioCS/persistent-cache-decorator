@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://www.schemastore.org/pre-commit-config.json
+---
 ci:
   skip:
     - uv-lock
@@ -9,7 +11,7 @@ ci:
     - uv-test
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.8.4
+    rev: 0.9.14
     hooks:
       - id: uv-lock
       - id: uv-export
@@ -19,7 +21,7 @@ repos:
       - id: taplo-format
       - id: taplo-lint
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.7
+    rev: v0.14.7
     hooks:
       - id: ruff-check
         types_or: [python, pyi, jupyter]
@@ -27,7 +29,7 @@ repos:
       - id: ruff-format
         types_or: [python, pyi, jupyter]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -36,14 +38,14 @@ repos:
       - id: name-tests-test
       - id: requirements-txt-fixer
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.19.0
     hooks:
       - id: mypy
   - repo: local
     hooks:
       - id: uv-mypy
         name: uv-mypy
-        entry: env VIRTUAL_ENV= uv run --extra types mypy
+        entry: env VIRTUAL_ENV= uv run mypy
         args: [--ignore-missing-imports, --scripts-are-modules]
         language: python
         'types_or': [python, pyi]
@@ -51,14 +53,15 @@ repos:
         additional_dependencies: [uv]
       - id: uv-pyrefly
         name: uv-pyrefly
-        entry: env VIRTUAL_ENV= uv run --extra types pyrefly check
+        entry: env VIRTUAL_ENV= uv run --group types_other pyrefly check
         language: python
         'types_or': [python, pyi]
         require_serial: true
         additional_dependencies: [uv]
+        stages: [manual]
       - id: uv-ty
         name: uv-ty
-        entry: env VIRTUAL_ENV= uv run --extra types ty check
+        entry: env VIRTUAL_ENV= uv run --group types_other ty check
         language: python
         'types_or': [python, pyi]
         require_serial: true
@@ -66,14 +69,14 @@ repos:
         stages: [manual]
       - id: uv-pyright
         name: uv-pyright
-        entry: env VIRTUAL_ENV= uv run --extra types pyright
+        entry: env VIRTUAL_ENV= uv run --group types_other pyright
         language: python
         'types_or': [python, pyi]
         require_serial: true
         additional_dependencies: [uv]
       - id: uv-test
         name: uv-test
-        entry: env VIRTUAL_ENV= uv run --extra tests pytest
+        entry: env VIRTUAL_ENV= uv run pytest
         language: python
         types: [python]
         pass_filenames: false

@@ -3,7 +3,7 @@
   "package_name": "persistent-cache-decorator",
   "module_name": "persistent_cache",
   "project_short_description": "A decorator for caching functions that provides persistence to JSON, pickle, or SQLite",
-  "minimum_python_version": "3.9",
+  "minimum_python_version": "3.10",
   "full_name": "Flavio Amurrio",
   "email": "25621374+FlavioAmurrioCS@users.noreply.github.com",
   "github_username": "FlavioAmurrioCS",

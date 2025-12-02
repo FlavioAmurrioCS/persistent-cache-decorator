@@ -6,11 +6,10 @@ import inspect
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Callable
+from typing import Concatenate
 from typing import Generic
 from typing import overload
 
-from typing_extensions import Concatenate
 from typing_extensions import ParamSpec
 from typing_extensions import Protocol
 from typing_extensions import Self
@@ -24,6 +23,7 @@ from persistent_cache.backend.pickle import PickleCacheBackend
 from persistent_cache.backend.sqlite import SqliteCacheBackend
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
 
     class _CacheDuration(TypedDict, total=False):
         """
