@@ -5,11 +5,14 @@ import datetime
 import functools
 import json
 from contextlib import suppress
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
 
 from persistent_cache.backend import AbstractCacheBackend
 from persistent_cache.backend import get_function_identifier
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class JsonCacheBackend(AbstractCacheBackend[str, Any]):

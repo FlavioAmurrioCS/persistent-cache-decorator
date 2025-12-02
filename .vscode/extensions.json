@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "charliermarsh.ruff",
+        "redhat.vscode-yaml",
+    ],
+    "unwantedRecommendations": [
+        "ms-python.vscode-python-envs",
+    ]
+}

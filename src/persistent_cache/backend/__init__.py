@@ -6,7 +6,6 @@ import logging
 import os
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
 
 from typing_extensions import ParamSpec
 from typing_extensions import Protocol
@@ -14,6 +13,7 @@ from typing_extensions import TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 

@@ -4,13 +4,16 @@ import datetime
 import functools
 import pickle
 import sqlite3
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
 
 from persistent_cache.backend import AbstractCacheBackend
 from persistent_cache.backend import CacheBackendDecodeError
 from persistent_cache.backend import CacheBackendEncodeError
 from persistent_cache.backend import get_function_identifier
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class SqliteCacheBackend(AbstractCacheBackend[tuple[bytes, bytes], bytes]):
