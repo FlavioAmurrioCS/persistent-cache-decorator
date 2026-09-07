@@ -11,7 +11,7 @@ ci:
     - uv-test
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.14
+    rev: 0.12.10
     hooks:
       - id: uv-lock
       - id: uv-export
@@ -21,7 +21,7 @@ repos:
       - id: taplo-format
       - id: taplo-lint
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.7
+    rev: v0.16.6
     hooks:
       - id: ruff-check
         types_or: [python, pyi, jupyter]
@@ -38,7 +38,7 @@ repos:
       - id: name-tests-test
       - id: requirements-txt-fixer
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.0
+    rev: v2.3.1
     hooks:
       - id: mypy
   - repo: local
